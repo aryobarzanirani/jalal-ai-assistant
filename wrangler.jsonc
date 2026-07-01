@@ -1,5 +1,5 @@
 {
-  "name": "jalal-ai",
+  "name": "jalal-ai-assistant",
   "main": "worker.js",
   "compatibility_date": "2026-06-18"
 }

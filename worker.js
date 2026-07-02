@@ -1,7 +1,6 @@
 export default {
   async fetch(request, env) {
 
-    // تست سلامت Worker
     if (request.method !== "POST") {
       return new Response("Jalal AI V2 is running");
     }
@@ -17,7 +16,27 @@ export default {
         return new Response("OK");
       }
 
-      // ---------- Gemini ----------
+      const prompt = `
+تو «جلال دوم» هستی.
+
+تو دستیار شخصی فارسی جلال هستی.
+
+قوانین:
+
+- همیشه خودت را «جلال دوم» معرفی کن.
+- همیشه فارسی صحبت کن مگر اینکه کاربر زبان دیگری بخواهد.
+- هرگز خودت را Gemini یا مدل زبان گوگل معرفی نکن، مگر اینکه کاربر مستقیماً درباره مدل پایه سؤال کند.
+- لحن تو دوستانه، حرفه‌ای، صمیمی و گاهی بامزه باشد.
+- پاسخ‌ها کوتاه، مفید و بدون توضیح اضافه باشند مگر اینکه کاربر توضیح کامل بخواهد.
+- اگر چیزی را نمی‌دانی، صادقانه بگو.
+- حدس نزن.
+- هدف تو کمک به جلال برای ساخت بهترین دستیار شخصی فارسی است.
+- اگر بعداً امکان ارسال صدا فراهم شد، متن را با لحن گرم و آرام مناسب دوبله کلاسیک فارسی بنویس مثل صدای ماندگار هادی اسلامی.
+
+پیام کاربر:
+
+${userText}
+`;
 
       let aiReply = "متأسفم، پاسخی دریافت نشد.";
 
@@ -31,73 +50,42 @@ export default {
               "Content-Type": "application/json"
             },
             body: JSON.stringify({
-  systemInstruction: {
-    parts: [
-      {
-        text: `تو «جلال دوم» هستی.
-
-تو دستیار شخصی فارسی جلال هستی.
-
-قوانین شخصیت:
-
-- همیشه خودت را «جلال دوم» معرفی کن.
-- همیشه به زبان فارسی پاسخ بده، مگر اینکه کاربر صریحاً زبان دیگری بخواهد.
-- لحن تو دوستانه، حرفه‌ای، صمیمی و گاهی بامزه باشد، اما از شوخی بی‌جا یا بیش از حد خودداری کن.
-- پاسخ‌ها همیشه صادقانه و دقیق باشند.
-- اگر چیزی را نمی‌دانی، واضح بگو که نمی‌دانی و حدس نزن.
-- پاسخ‌ها مختصر، مفید و کاربردی باشند.
-- از توضیحات طولانی، تکراری و حاشیه‌ای خودداری کن مگر اینکه کاربر خودش توضیح کامل بخواهد.
-- هدف اصلی تو کمک به جلال در برنامه‌ریزی، یادگیری، برنامه‌نویسی، مدیریت کارهای روزانه و تبدیل شدن به یک دستیار شخصی هوشمند
-اگر کاربر از تو بخواهد با صدا پاسخ بدهی یا متن مناسب برای تبدیل به صدا تولید کنی، متن را با لحن گرم، آرام، شمرده و نوستالژیک مناسب دوبله قدیمی فارس شبیه هادی اسلامی کن.
-- همیشه مؤدب، قابل اعتماد و همراه جلال باش.`
-      }
-    ]
-  },
-
-  contents: [
-    {
-      role: "user",
-      parts: [
-        {
-          text: userText
-        }
-      ]
-    }
-  ]
-})
+              contents: [
+                {
+                  role: "user",
+                  parts: [
+                    {
+                      text: prompt
+                    }
+                  ]
+                }
+              ]
+            })
           }
         );
 
-        const geminiData = await geminiResponse.json();
+        const data = await geminiResponse.json();
 
         if (!geminiResponse.ok) {
 
-          aiReply =
-            "خطای Gemini:\n" +
-            JSON.stringify(geminiData);
+          aiReply = "خطای Gemini:\n" + JSON.stringify(data);
 
         } else {
 
           aiReply =
-            geminiData.candidates?.[0]?.content?.parts?.[0]?.text ??
-            "Gemini پاسخی برنگرداند.";
+            data.candidates?.[0]?.content?.parts?.[0]?.text ??
+            "پاسخی از Gemini دریافت نشد.";
 
         }
 
-      } catch (e) {
+      } catch (err) {
 
-        aiReply =
-          "خطا در اتصال به Gemini:\n" +
-          e.message;
+        aiReply = "خطا در ارتباط با Gemini.";
 
       }
 
-      // ---------- Telegram ----------
-
-      const telegramResponse = await fetch(
-
+      await fetch(
         `https://api.telegram.org/bot${env.TELEGRAM_BOT_TOKEN}/sendMessage`,
-
         {
           method: "POST",
           headers: {
@@ -108,23 +96,11 @@ export default {
             text: aiReply
           })
         }
-
       );
-
-      if (!telegramResponse.ok) {
-
-        console.log(
-          "Telegram Error:",
-          await telegramResponse.text()
-        );
-
-      }
 
       return new Response("OK");
 
     } catch (err) {
-
-      console.log(err);
 
       return new Response("Internal Error", {
         status: 500

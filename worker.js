@@ -50,7 +50,7 @@ export default {
     }
 
     await fetch(
-      "https://api.telegram.org/bot${env.TELEGRAM_BOT_TOKEN}/sendMessage",
+      `https://api.telegram.org/bot${env.TELEGRAM_BOT_TOKEN}/sendMessage`,
       {
         method: "POST",
         headers: {

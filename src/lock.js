@@ -11,7 +11,7 @@ export async function acquireLock(env, chatId) {
     key,
     "locked",
     {
-      expirationTtl: 30
+      expirationTtl: 60
     }
   );
 

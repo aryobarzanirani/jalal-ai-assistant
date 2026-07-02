@@ -1,6 +1,8 @@
 {
   "name": "jalal-ai-assistant",
-  "main": "worker.js",
+
+  "main": "src/index.js",
+
   "compatibility_date": "2026-06-18",
 
   "kv_namespaces": [
@@ -8,5 +10,9 @@
       "binding": "MEMORY",
       "id": "bb7975ff930d4937b47b8ee3b71b99cf"
     }
-  ]
+  ],
+
+  "observability": {
+    "enabled": true
+  }
 }

@@ -1,60 +1,56 @@
 import { SYSTEM_PROMPT } from "./prompt.js";
 
 export async function askGemini(env, memory, userText) {
-  const profile = memory.profile || {
-    name: null,
-    preferences: [],
-    goals: []
-  };
+  const profile = memory.profile || {};
+  const shortTermMemory = memory.shortTermMemory || [];
+  const longTermMemory = memory.longTermMemory || [];
 
-  const shortTermMemory =
-    memory.shortTermMemory || [];
+  const profileBlock = `
+=== اطلاعات قطعی ذخیره‌شده کاربر ===
+نام: ${profile.name || "ثبت نشده"}
+ترجیحات: ${
+    profile.preferences?.length
+      ? profile.preferences.join(" | ")
+      : "ثبت نشده"
+  }
+اهداف: ${
+    profile.goals?.length
+      ? profile.goals.join(" | ")
+      : "ثبت نشده"
+  }
+`;
 
-  const longTermMemory =
-    memory.longTermMemory || [];
-
-  const profileText = `
-نام کاربر: ${profile.name || "نامشخص"}
-
-ترجیحات:
+  const longTermBlock = `
+=== حافظه بلندمدت ===
 ${
-  profile.preferences.length
-    ? profile.preferences.join("\n")
-    : "موردی ثبت نشده"
-}
-
-اهداف:
-${
-  profile.goals.length
-    ? profile.goals.join("\n")
+  longTermMemory.length
+    ? longTermMemory.slice(-10).join("\n")
     : "موردی ثبت نشده"
 }
 `;
 
-  const shortTermText =
-    shortTermMemory
-      .slice(-20)
-      .join("\n");
-
-  const longTermText =
-    longTermMemory
-      .slice(-10)
-      .join("\n");
+  const shortTermBlock = `
+=== گفتگوهای اخیر ===
+${
+  shortTermMemory.length
+    ? shortTermMemory.slice(-12).join("\n")
+    : "گفتگویی ثبت نشده"
+}
+`;
 
   const prompt = `
 ${SYSTEM_PROMPT}
 
-=== پروفایل کاربر ===
-${profileText}
+${profileBlock}
 
-=== حافظه بلندمدت ===
-${longTermText}
+${longTermBlock}
 
-=== گفتگوهای اخیر ===
-${shortTermText}
+${shortTermBlock}
 
 === پیام جدید کاربر ===
 ${userText}
+
+پاسخ جلال دوم:
 `;
 
   try {
@@ -75,31 +71,29 @@ ${userText}
                 }
               ]
             }
-          ]
+          ],
+          generationConfig: {
+            temperature: 0.7,
+            maxOutputTokens: 500
+          }
         })
       }
     );
 
-    if (response.status === 429) {
-      return "ظرفیت مدل هوش مصنوعی فعلاً تکمیل شده. لطفاً کمی بعد دوباره تلاش کنید.";
-    }
+    const data = await response.json();
 
     if (!response.ok) {
-      const errorText = await response.text();
-      console.error("Gemini Error:", errorText);
-
+      console.error("Gemini Error:", JSON.stringify(data));
       return "در ارتباط با مدل هوش مصنوعی خطایی رخ داد.";
     }
 
-    const data = await response.json();
-
     return (
-      data.candidates?.[0]?.content?.parts?.[0]?.text ??
+      data?.candidates?.[0]?.content?.parts?.[0]?.text ||
       "پاسخی دریافت نشد."
     );
-  } catch (error) {
-    console.error("Gemini Fetch Error:", error);
 
-    return "فعلاً امکان پاسخ‌گویی ندارم.";
+  } catch (err) {
+    console.error("Gemini Fetch Error:", err);
+    return "در ارتباط با مدل هوش مصنوعی خطایی رخ داد.";
   }
 }

@@ -47,7 +47,8 @@ ${userText}
     if (!response.ok) {
       const errorText = await response.text();
       console.error("Gemini Error:", errorText);
-      return "در ارتباط با مدل هوش مصنوعی خطایی رخ داد.";
+
+      return `GEMINI ERROR:\n${errorText}`;
     }
 
     const data = await response.json();
@@ -58,6 +59,7 @@ ${userText}
     );
   } catch (error) {
     console.error("Gemini Fetch Error:", error);
-    return "فعلاً امکان پاسخ‌گویی ندارم.";
+
+    return `FETCH ERROR: ${error.message}`;
   }
 }

@@ -2,7 +2,8 @@ import { askGemini } from "./gemini.js";
 import {
   getMemory,
   saveMemory,
-  rememberName
+  rememberName,
+  rememberGoal
 } from "./memory.js";
 import { sendTelegram } from "./telegram.js";
 import { checkQuota } from "./quota.js";
@@ -15,7 +16,6 @@ export default {
 
     try {
       const update = await request.json();
-
       const message = update?.message;
 
       if (!message) {
@@ -54,6 +54,7 @@ export default {
       const memory = await getMemory(env, chatId);
 
       rememberName(memory, userText);
+      rememberGoal(memory, userText);
 
       let reply = await askGemini(
         env,
@@ -65,16 +66,26 @@ export default {
         reply += `\n\n${quota.warning}`;
       }
 
-      memory.history.push(`کاربر: ${userText}`);
-      memory.history.push(`جلال دوم: ${reply}`);
+      memory.shortTermMemory.push(
+        `کاربر: ${userText}`
+      );
 
-      if (memory.history.length > 20) {
-        memory.history = memory.history.slice(-20);
+      memory.shortTermMemory.push(
+        `جلال دوم: ${reply}`
+      );
+
+      if (memory.shortTermMemory.length > 20) {
+        memory.shortTermMemory =
+          memory.shortTermMemory.slice(-20);
       }
 
       await saveMemory(env, chatId, memory);
 
-      await sendTelegram(env, chatId, reply);
+      await sendTelegram(
+        env,
+        chatId,
+        reply
+      );
 
       return new Response("OK");
     } catch (err) {

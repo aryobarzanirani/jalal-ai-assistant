@@ -2,19 +2,23 @@ export async function getMemory(env, chatId) {
   const data = await env.MEMORY.get(chatId);
 
   if (!data) {
-    return {
-      history: [],
-      name: null
-    };
+    return createDefaultMemory();
   }
 
   try {
-    return JSON.parse(data);
-  } catch {
+    const parsed = JSON.parse(data);
+
     return {
-      history: [],
-      name: null
+      profile: parsed.profile || {
+        name: null,
+        preferences: [],
+        goals: []
+      },
+      shortTermMemory: parsed.shortTermMemory || [],
+      longTermMemory: parsed.longTermMemory || []
     };
+  } catch {
+    return createDefaultMemory();
   }
 }
 
@@ -25,29 +29,36 @@ export async function saveMemory(env, chatId, memory) {
   );
 }
 
-// جلوگیری از ذخیره اسم‌های اشتباه
+function createDefaultMemory() {
+  return {
+    profile: {
+      name: null,
+      preferences: [],
+      goals: []
+    },
+    shortTermMemory: [],
+    longTermMemory: []
+  };
+}
+
 function isValidName(name) {
   if (!name) return false;
 
   const cleaned = name.trim();
 
-  // خیلی کوتاه یا خیلی طولانی نباشد
-  if (cleaned.length < 2 || cleaned.length > 25) return false;
+  if (cleaned.length < 2 || cleaned.length > 25) {
+    return false;
+  }
 
-  // شامل سوال نباشد
-  if (cleaned.includes("?")) return false;
-
-  // کلمات مشکوک
   const badWords = [
     "چیه",
     "چی",
-    "کجاست",
-    "کیه",
-    "اسمم چیه",
-    "نامم چیه"
+    "کیه"
   ];
 
-  if (badWords.includes(cleaned)) return false;
+  if (badWords.includes(cleaned)) {
+    return false;
+  }
 
   return true;
 }
@@ -57,8 +68,7 @@ export function rememberName(memory, text) {
 
   const patterns = [
     /^اسم من\s+(.+?)\s*(است|هست|ه)?$/i,
-    /^من\s+(.+?)\s+هستم$/i,
-    /^من\s+(.{2,25})$/i
+    /^من\s+(.+?)\s+هستم$/i
   ];
 
   for (const pattern of patterns) {
@@ -68,9 +78,30 @@ export function rememberName(memory, text) {
       const name = match[1].trim();
 
       if (isValidName(name)) {
-        memory.name = name;
+        memory.profile.name = name;
         return;
       }
+    }
+  }
+}
+
+export function rememberGoal(memory, text) {
+  const triggers = [
+    "هدف من",
+    "دارم روی",
+    "میخوام"
+  ];
+
+  for (const trigger of triggers) {
+    if (text.includes(trigger)) {
+      memory.longTermMemory.push(text);
+
+      if (memory.longTermMemory.length > 30) {
+        memory.longTermMemory =
+          memory.longTermMemory.slice(-30);
+      }
+
+      return;
     }
   }
 }

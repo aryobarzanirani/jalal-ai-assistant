@@ -8,25 +8,46 @@ export async function getMemory(env, chatId) {
   try {
     const parsed = JSON.parse(data);
 
+    // Migration from old schema
+    if ("history" in parsed || "name" in parsed) {
+      return {
+        profile: {
+          name: parsed.name || null,
+          preferences: [],
+          goals: []
+        },
+        shortTermMemory: Array.isArray(parsed.history)
+          ? parsed.history
+          : [],
+        longTermMemory: []
+      };
+    }
+
     return {
-      profile: parsed.profile || {
-        name: null,
-        preferences: [],
-        goals: []
+      profile: {
+        name: parsed?.profile?.name || null,
+        preferences: Array.isArray(parsed?.profile?.preferences)
+          ? parsed.profile.preferences
+          : [],
+        goals: Array.isArray(parsed?.profile?.goals)
+          ? parsed.profile.goals
+          : []
       },
-      shortTermMemory: parsed.shortTermMemory || [],
-      longTermMemory: parsed.longTermMemory || []
+      shortTermMemory: Array.isArray(parsed?.shortTermMemory)
+        ? parsed.shortTermMemory
+        : [],
+      longTermMemory: Array.isArray(parsed?.longTermMemory)
+        ? parsed.longTermMemory
+        : []
     };
-  } catch {
+  } catch (err) {
+    console.error("Memory Parse Error:", err);
     return createDefaultMemory();
   }
 }
 
 export async function saveMemory(env, chatId, memory) {
-  await env.MEMORY.put(
-    chatId,
-    JSON.stringify(memory)
-  );
+  await env.MEMORY.put(chatId, JSON.stringify(memory));
 }
 
 function createDefaultMemory() {
@@ -50,17 +71,9 @@ function isValidName(name) {
     return false;
   }
 
-  const badWords = [
-    "چیه",
-    "چی",
-    "کیه"
-  ];
+  const badWords = ["چیه", "چی", "کیه"];
 
-  if (badWords.includes(cleaned)) {
-    return false;
-  }
-
-  return true;
+  return !badWords.includes(cleaned);
 }
 
 export function rememberName(memory, text) {
@@ -86,11 +99,11 @@ export function rememberName(memory, text) {
 }
 
 export function rememberGoal(memory, text) {
-  const triggers = [
-    "هدف من",
-    "دارم روی",
-    "میخوام"
-  ];
+  if (!Array.isArray(memory.longTermMemory)) {
+    memory.longTermMemory = [];
+  }
+
+  const triggers = ["هدف من", "دارم روی", "میخوام"];
 
   for (const trigger of triggers) {
     if (text.includes(trigger)) {

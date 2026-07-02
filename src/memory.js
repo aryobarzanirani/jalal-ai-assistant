@@ -25,31 +25,49 @@ export async function saveMemory(env, chatId, memory) {
   );
 }
 
-export function rememberName(memory, text) {
-  const cleaned = text.trim();
+// جلوگیری از ذخیره اسم‌های اشتباه
+function isValidName(name) {
+  if (!name) return false;
 
-  if (
-    cleaned.includes("اسم من چیه") ||
-    cleaned.includes("اسمم چیه")
-  ) {
-    return;
-  }
+  const cleaned = name.trim();
+
+  // خیلی کوتاه یا خیلی طولانی نباشد
+  if (cleaned.length < 2 || cleaned.length > 25) return false;
+
+  // شامل سوال نباشد
+  if (cleaned.includes("?")) return false;
+
+  // کلمات مشکوک
+  const badWords = [
+    "چیه",
+    "چی",
+    "کجاست",
+    "کیه",
+    "اسمم چیه",
+    "نامم چیه"
+  ];
+
+  if (badWords.includes(cleaned)) return false;
+
+  return true;
+}
+
+export function rememberName(memory, text) {
+  const t = text.trim();
 
   const patterns = [
-    /^اسم من\s+(.+?)\s*(?:است|هست|ه)$/i,
-    /^من\s+(.+?)\s+هستم$/i
+    /^اسم من\s+(.+?)\s*(است|هست|ه)?$/i,
+    /^من\s+(.+?)\s+هستم$/i,
+    /^من\s+(.{2,25})$/i
   ];
 
   for (const pattern of patterns) {
-    const match = cleaned.match(pattern);
+    const match = t.match(pattern);
 
     if (match) {
       const name = match[1].trim();
 
-      if (
-        name.length > 0 &&
-        name.length < 30
-      ) {
+      if (isValidName(name)) {
         memory.name = name;
         return;
       }

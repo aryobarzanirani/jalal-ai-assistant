@@ -1,4 +1,3 @@
-
 export async function getMemory(env, chatId) {
   const data = await env.MEMORY.get(chatId);
 
@@ -27,19 +26,30 @@ export async function saveMemory(env, chatId, memory) {
 }
 
 export function rememberName(memory, text) {
+  const cleaned = text.trim();
+
+  if (
+    cleaned.includes("اسم من چیه") ||
+    cleaned.includes("اسمم چیه")
+  ) {
+    return;
+  }
+
   const patterns = [
-    /اسم من\s+(.+?)\s*(?:است|هست)?$/i,
-    /من\s+(.+?)\s+هستم$/i,
-    /من\s+(.+)$/i
+    /^اسم من\s+(.+?)\s*(?:است|هست|ه)$/i,
+    /^من\s+(.+?)\s+هستم$/i
   ];
 
   for (const pattern of patterns) {
-    const match = text.match(pattern);
+    const match = cleaned.match(pattern);
 
     if (match) {
       const name = match[1].trim();
 
-      if (name.length < 50) {
+      if (
+        name.length > 0 &&
+        name.length < 30
+      ) {
         memory.name = name;
         return;
       }

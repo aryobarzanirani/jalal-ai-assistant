@@ -1,37 +1,48 @@
-export async function getMemory(env, chatId) {
 
+export async function getMemory(env, chatId) {
   const data = await env.MEMORY.get(chatId);
 
   if (!data) {
-
     return {
       history: [],
       name: null
     };
-
   }
 
-  return JSON.parse(data);
-
+  try {
+    return JSON.parse(data);
+  } catch {
+    return {
+      history: [],
+      name: null
+    };
+  }
 }
 
 export async function saveMemory(env, chatId, memory) {
-
   await env.MEMORY.put(
     chatId,
     JSON.stringify(memory)
   );
-
 }
 
 export function rememberName(memory, text) {
+  const patterns = [
+    /اسم من\s+(.+?)\s*(?:است|هست)?$/i,
+    /من\s+(.+?)\s+هستم$/i,
+    /من\s+(.+)$/i
+  ];
 
-  const m = text.match(/(?:اسم من|من)\s+(.+)/);
+  for (const pattern of patterns) {
+    const match = text.match(pattern);
 
-  if (m) {
+    if (match) {
+      const name = match[1].trim();
 
-    memory.name = m[1].trim();
-
+      if (name.length < 50) {
+        memory.name = name;
+        return;
+      }
+    }
   }
-
 }

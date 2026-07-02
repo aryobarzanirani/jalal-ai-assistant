@@ -51,6 +51,9 @@ ${userText}
       return `GEMINI ERROR:\n${errorText}`;
     }
 
+    if (response.status === 429) {
+  return "ظرفیت مدل فعلاً تکمیل شده. لطفاً کمی بعد دوباره تلاش کنید.";
+    }
     const data = await response.json();
 
     return (

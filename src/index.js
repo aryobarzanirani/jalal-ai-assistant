@@ -2,7 +2,7 @@ import { askGemini } from "./gemini.js";
 import {
   getMemory,
   saveMemory,
- rememberName,
+  rememberName,
   rememberGoal
 } from "./memory.js";
 import { sendTelegram } from "./telegram.js";
@@ -11,6 +11,7 @@ import {
   acquireLock,
   releaseLock
 } from "./lock.js";
+import { getDirectResponse } from "./router.js";
 
 export default {
   async fetch(request, env) {
@@ -58,6 +59,41 @@ export default {
         return new Response("OK");
       }
 
+      const memory = await getMemory(env, chatId);
+
+      rememberName(memory, userText);
+      rememberGoal(memory, userText);
+
+      const directResponse = getDirectResponse(
+        memory,
+        userText
+      );
+
+      if (directResponse) {
+        memory.shortTermMemory.push(
+          `کاربر: ${userText}`
+        );
+
+        memory.shortTermMemory.push(
+          `جلال دوم: ${directResponse}`
+        );
+
+        if (memory.shortTermMemory.length > 20) {
+          memory.shortTermMemory =
+            memory.shortTermMemory.slice(-20);
+        }
+
+        await saveMemory(env, chatId, memory);
+
+        await sendTelegram(
+          env,
+          chatId,
+          directResponse
+        );
+
+        return new Response("OK");
+      }
+
       const quota = await checkQuota(env);
 
       if (!quota.allowed) {
@@ -69,11 +105,6 @@ export default {
 
         return new Response("OK");
       }
-
-      const memory = await getMemory(env, chatId);
-
-      rememberName(memory, userText);
-      rememberGoal(memory, userText);
 
       let reply = await askGemini(
         env,
@@ -116,4 +147,26 @@ export default {
           await sendTelegram(
             env,
             chatId,
-            "خطای داخلی رخ داد. لطفاً دوب
+            "خطای داخلی رخ داد. لطفاً دوباره تلاش کنید."
+          );
+        } catch {}
+      }
+
+      return new Response(
+        "Internal Error",
+        {
+          status: 500
+        }
+      );
+
+    } finally {
+      if (chatId && lockAcquired) {
+        try {
+          await releaseLock(env, chatId);
+        } catch (e) {
+          console.error("Lock Release Error:", e);
+        }
+      }
+    }
+  }
+};

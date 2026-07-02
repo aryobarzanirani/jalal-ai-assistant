@@ -2,17 +2,24 @@ import { askGemini } from "./gemini.js";
 import {
   getMemory,
   saveMemory,
-  rememberName,
+ rememberName,
   rememberGoal
 } from "./memory.js";
 import { sendTelegram } from "./telegram.js";
 import { checkQuota } from "./quota.js";
+import {
+  acquireLock,
+  releaseLock
+} from "./lock.js";
 
 export default {
   async fetch(request, env) {
     if (request.method !== "POST") {
       return new Response("Jalal AI is running");
     }
+
+    let chatId = null;
+    let lockAcquired = false;
 
     try {
       const update = await request.json();
@@ -22,10 +29,22 @@ export default {
         return new Response("OK");
       }
 
-      const chatId = message?.chat?.id?.toString();
+      chatId = message?.chat?.id?.toString();
       const userText = message?.text;
 
       if (!chatId) {
+        return new Response("OK");
+      }
+
+      lockAcquired = await acquireLock(env, chatId);
+
+      if (!lockAcquired) {
+        await sendTelegram(
+          env,
+          chatId,
+          "در حال پردازش پیام قبلی هستم. لطفاً چند ثانیه صبر کنید."
+        );
+
         return new Response("OK");
       }
 
@@ -88,15 +107,13 @@ export default {
       );
 
       return new Response("OK");
+
     } catch (err) {
       console.error("Worker Error:", err);
 
-      return new Response(
-        "Internal Error",
-        {
-          status: 500
-        }
-      );
-    }
-  }
-};
+      if (chatId) {
+        try {
+          await sendTelegram(
+            env,
+            chatId,
+            "خطای داخلی رخ داد. لطفاً دوب

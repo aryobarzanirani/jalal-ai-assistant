@@ -140,23 +140,28 @@ export default {
       return new Response("OK");
 
     } catch (err) {
-      console.error("Worker Error:", err);
+      catch (err) {
+  const errorMessage =
+    err?.stack ||
+    err?.message ||
+    JSON.stringify(err);
 
-      if (chatId) {
-        try {
-          await sendTelegram(
-            env,
-            chatId,
-            "خطای داخلی رخ داد. لطفاً دوباره تلاش کنید."
-          );
-        } catch {}
-      }
+  console.error("Worker Error FULL:", errorMessage);
 
-      return new Response(
-        "Internal Error",
-        {
-          status: 500
-        }
+  if (chatId) {
+    try {
+      await sendTelegram(
+        env,
+        chatId,
+        "DEBUG ERROR:\n" + errorMessage.slice(0, 3500)
+      );
+    } catch {}
+  }
+
+  return new Response("Internal Error", {
+    status: 500
+  });
+}
       );
 
     } finally {

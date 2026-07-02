@@ -5,6 +5,7 @@ import {
   rememberName
 } from "./memory.js";
 import { sendTelegram } from "./telegram.js";
+import { checkQuota } from "./quota.js";
 
 export default {
   async fetch(request, env) {
@@ -38,15 +39,31 @@ export default {
         return new Response("OK");
       }
 
+      const quota = await checkQuota(env);
+
+      if (!quota.allowed) {
+        await sendTelegram(
+          env,
+          chatId,
+          quota.warning
+        );
+
+        return new Response("OK");
+      }
+
       const memory = await getMemory(env, chatId);
 
       rememberName(memory, userText);
 
-      const reply = await askGemini(
+      let reply = await askGemini(
         env,
         memory,
         userText
       );
+
+      if (quota.warning) {
+        reply += `\n\n${quota.warning}`;
+      }
 
       memory.history.push(`کاربر: ${userText}`);
       memory.history.push(`جلال دوم: ${reply}`);

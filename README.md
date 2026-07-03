@@ -12,3 +12,4 @@ Telegram AI Assistant
 - Memory (Coming Soon)
 - Reminders (Coming Soon)
 - Daily Planner (Coming Soon)
+force rebuild

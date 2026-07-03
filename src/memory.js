@@ -151,20 +151,30 @@ export function rememberGoal(memory, text) {
     memory.longTermMemory = [];
   }
 
+  const t = text.trim();
+
+  if (
+    t.includes("چیه") ||
+    t.includes("چیست") ||
+    t.includes("?") ||
+    t.includes("؟")
+  ) {
+    return;
+  }
+
   const triggers = [
     "هدف من",
     "دارم روی",
     "میخوام",
     "می‌خوام",
-    "پروژه من",
     "در حال ساخت",
     "در حال توسعه"
   ];
 
   for (const trigger of triggers) {
-    if (text.includes(trigger)) {
-      memory.profile.goals.push(text);
-      memory.longTermMemory.push(text);
+    if (t.includes(trigger)) {
+      memory.profile.goals.push(t);
+      memory.longTermMemory.push(t);
 
       if (memory.profile.goals.length > 20) {
         memory.profile.goals =

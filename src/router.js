@@ -1,7 +1,4 @@
 export function getDirectResponse(memory, userText) {
-  return "ROUTER WORKS";
-}
-export function getDirectResponse(memory, userText) {
   const text = userText.trim();
 
   if (

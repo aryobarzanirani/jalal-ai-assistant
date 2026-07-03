@@ -155,7 +155,10 @@ export function rememberGoal(memory, text) {
     "هدف من",
     "دارم روی",
     "میخوام",
-    "پروژه من"
+    "می‌خوام",
+    "پروژه من",
+    "در حال ساخت",
+    "در حال توسعه"
   ];
 
   for (const trigger of triggers) {

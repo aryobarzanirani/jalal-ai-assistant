@@ -8,54 +8,31 @@ export async function getMemory(env, chatId) {
   try {
     const parsed = JSON.parse(data);
 
-    // Migration from old schema
-    if ("history" in parsed || "name" in parsed) {
-      return {
-        profile: {
-          name: parsed.name || null,
-          preferences: [],
-          goals: []
-        },
-        shortTermMemory: Array.isArray(parsed.history)
-          ? parsed.history
-          : [],
-        longTermMemory: []
-      };
-    }
-
     return {
-      profile: {
-        name: parsed?.profile?.name || null,
-        preferences: Array.isArray(parsed?.profile?.preferences)
-          ? parsed.profile.preferences
-          : [],
-        goals: Array.isArray(parsed?.profile?.goals)
-          ? parsed.profile.goals
-          : []
-      },
-      shortTermMemory: Array.isArray(parsed?.shortTermMemory)
-        ? parsed.shortTermMemory
-        : [],
-      longTermMemory: Array.isArray(parsed?.longTermMemory)
-        ? parsed.longTermMemory
-        : []
+      profile: parsed.profile || createDefaultMemory().profile,
+      shortTermMemory: parsed.shortTermMemory || [],
+      longTermMemory: parsed.longTermMemory || []
     };
-  } catch (err) {
-    console.error("Memory Parse Error:", err);
+  } catch {
     return createDefaultMemory();
   }
 }
 
 export async function saveMemory(env, chatId, memory) {
-  await env.MEMORY.put(chatId, JSON.stringify(memory));
+  await env.MEMORY.put(
+    chatId,
+    JSON.stringify(memory)
+  );
 }
 
 function createDefaultMemory() {
   return {
     profile: {
       name: null,
+      family: [],
       preferences: [],
-      goals: []
+      goals: [],
+      projects: []
     },
     shortTermMemory: [],
     longTermMemory: []
@@ -71,9 +48,18 @@ function isValidName(name) {
     return false;
   }
 
-  const badWords = ["چیه", "چی", "کیه"];
+  const badWords = [
+    "چیه",
+    "چی",
+    "کیه",
+    "چیست"
+  ];
 
-  return !badWords.includes(cleaned);
+  if (badWords.includes(cleaned)) {
+    return false;
+  }
+
+  return true;
 }
 
 export function rememberName(memory, text) {
@@ -98,16 +84,59 @@ export function rememberName(memory, text) {
   }
 }
 
-export function rememberGoal(memory, text) {
-  if (!Array.isArray(memory.longTermMemory)) {
-    memory.longTermMemory = [];
-  }
+export function rememberFamily(memory, text) {
+  if (
+    text.includes("اسم دخترم") ||
+    text.includes("اسم پسرم") ||
+    text.includes("اسم همسرم")
+  ) {
+    memory.profile.family.push(text);
 
-  const triggers = ["هدف من", "دارم روی", "میخوام"];
+    if (memory.profile.family.length > 20) {
+      memory.profile.family =
+        memory.profile.family.slice(-20);
+    }
+  }
+}
+
+export function rememberPreference(memory, text) {
+  const triggers = [
+    "دوست دارم",
+    "علاقه دارم",
+    "علاقه‌مندم"
+  ];
 
   for (const trigger of triggers) {
     if (text.includes(trigger)) {
+      memory.profile.preferences.push(text);
+
+      if (memory.profile.preferences.length > 20) {
+        memory.profile.preferences =
+          memory.profile.preferences.slice(-20);
+      }
+
+      return;
+    }
+  }
+}
+
+export function rememberGoal(memory, text) {
+  const triggers = [
+    "هدف من",
+    "دارم روی",
+    "میخوام",
+    "پروژه من"
+  ];
+
+  for (const trigger of triggers) {
+    if (text.includes(trigger)) {
+      memory.profile.goals.push(text);
       memory.longTermMemory.push(text);
+
+      if (memory.profile.goals.length > 20) {
+        memory.profile.goals =
+          memory.profile.goals.slice(-20);
+      }
 
       if (memory.longTermMemory.length > 30) {
         memory.longTermMemory =

@@ -91,24 +91,28 @@ export function rememberName(memory, text) {
 }
 
 export function rememberFamily(memory, text) {
-  if (!memory.profile) {
-    memory.profile = {};
-  }
-
   if (!memory.profile.family) {
     memory.profile.family = [];
   }
 
-  if (
-    text.includes("اسم دخترم") ||
-    text.includes("اسم پسرم") ||
-    text.includes("اسم همسرم")
-  ) {
-    memory.profile.family.push(text);
+  const familyPatterns = [
+    "دخترم",
+    "پسرم",
+    "همسرم",
+    "زنم",
+    "شوهرم"
+  ];
 
-    if (memory.profile.family.length > 20) {
-      memory.profile.family =
-        memory.profile.family.slice(-20);
+  for (const pattern of familyPatterns) {
+    if (text.includes(pattern)) {
+      memory.profile.family.push(text);
+
+      if (memory.profile.family.length > 20) {
+        memory.profile.family =
+          memory.profile.family.slice(-20);
+      }
+
+      return;
     }
   }
 }

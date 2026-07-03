@@ -3,10 +3,11 @@ import {
   getMemory,
   saveMemory,
   rememberName,
-  rememberGoal
+  rememberGoal,
+  rememberFamily,
+  rememberPreference
 } from "./memory.js";
 import { sendTelegram } from "./telegram.js";
-import { checkQuota } from "./quota.js";
 import {
   acquireLock,
   releaseLock
@@ -63,11 +64,11 @@ export default {
 
       rememberName(memory, userText);
       rememberGoal(memory, userText);
+      rememberFamily(memory, userText);
+      rememberPreference(memory, userText);
 
-      const directResponse = getDirectResponse(
-        memory,
-        userText
-      );
+      const directResponse =
+        getDirectResponse(memory, userText);
 
       if (directResponse) {
         memory.shortTermMemory.push(
@@ -94,27 +95,11 @@ export default {
         return new Response("OK");
       }
 
-      const quota = await checkQuota(env);
-
-      if (!quota.allowed) {
-        await sendTelegram(
-          env,
-          chatId,
-          quota.warning
-        );
-
-        return new Response("OK");
-      }
-
-      let reply = await askGemini(
+      const reply = await askGemini(
         env,
         memory,
         userText
       );
-
-      if (quota.warning) {
-        reply += `\n\n${quota.warning}`;
-      }
 
       memory.shortTermMemory.push(
         `کاربر: ${userText}`
@@ -155,28 +140,21 @@ export default {
           await sendTelegram(
             env,
             chatId,
-            "DEBUG ERROR:\n" +
-            String(errorMessage).slice(0, 3500)
+            "خطای داخلی رخ داد. لطفاً دوباره تلاش کنید."
           );
         } catch {}
       }
 
-      return new Response(
-        "Internal Error",
-        {
-          status: 500
-        }
-      );
+      return new Response("Internal Error", {
+        status: 500
+      });
 
     } finally {
       if (chatId && lockAcquired) {
         try {
           await releaseLock(env, chatId);
         } catch (e) {
-          console.error(
-            "Lock Release Error:",
-            e
-          );
+          console.error("Lock Release Error:", e);
         }
       }
     }

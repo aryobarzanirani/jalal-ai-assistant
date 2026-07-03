@@ -34,6 +34,12 @@ export function getDirectResponse(memory, userText) {
   // Identity
   if (
     text.includes("تو کی هستی")
+  text.includes("اسم تو چیه") ||
+  text.includes("اسم شما چیه") ||
+  text.includes("اسمت چیه")
+) {
+  return "اسم من جلال دوم است.";
+  }
   ) {
     return "من جلال دوم هستم، دستیار شخصی فارسی شما.";
   }

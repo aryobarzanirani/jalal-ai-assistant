@@ -1,6 +1,43 @@
 export function getDirectResponse(memory, userText) {
   const text = userText.trim();
 
+  // Greeting
+  if (
+    text === "سلام" ||
+    text === "سلام جلال" ||
+    text === "صبح بخیر" ||
+    text === "شب بخیر"
+  ) {
+    const name = memory?.profile?.name;
+
+    if (name) {
+      return `سلام ${name}.`;
+    }
+
+    return "سلام. خوشحالم که برگشتی.";
+  }
+
+  // Small Talk
+  if (
+    text.includes("خوبی") ||
+    text.includes("چطوری")
+  ) {
+    return "خوبم. آماده‌ام کمکت کنم.";
+  }
+
+  if (
+    text.includes("هستی")
+  ) {
+    return "بله، در خدمتم.";
+  }
+
+  // Identity
+  if (
+    text.includes("تو کی هستی")
+  ) {
+    return "من جلال دوم هستم، دستیار شخصی فارسی شما.";
+  }
+
   if (
     text.includes("اسم من چیه") ||
     text.includes("اسم من چیست")
@@ -12,12 +49,7 @@ export function getDirectResponse(memory, userText) {
     return "نام شما هنوز در حافظه من ثبت نشده است.";
   }
 
-  if (
-    text.includes("تو کی هستی")
-  ) {
-    return "من جلال دوم هستم، دستیار شخصی فارسی شما.";
-  }
-
+  // Family
   if (
     text.includes("اسم دخترم چیه") ||
     text.includes("اسم دخترم چیست")
@@ -35,6 +67,7 @@ export function getDirectResponse(memory, userText) {
     return "اطلاعاتی درباره دختر شما در حافظه ثبت نشده است.";
   }
 
+  // Preferences
   if (
     text.includes("علایق من چیه") ||
     text.includes("به چی علاقه دارم")
@@ -52,6 +85,7 @@ export function getDirectResponse(memory, userText) {
     return "هنوز علاقه‌ای از شما ثبت نشده است.";
   }
 
+  // Goals / Projects
   if (
     text.includes("روی چه پروژه‌ای کار می‌کنم") ||
     text.includes("پروژه من چیه")
@@ -68,6 +102,7 @@ export function getDirectResponse(memory, userText) {
     return "هنوز پروژه‌ای در حافظه ثبت نشده است.";
   }
 
+  // Memory Status
   if (
     text.includes("وضعیت حافظه")
   ) {

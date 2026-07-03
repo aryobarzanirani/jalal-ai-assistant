@@ -9,7 +9,13 @@ export async function getMemory(env, chatId) {
     const parsed = JSON.parse(data);
 
     return {
-      profile: parsed.profile || createDefaultMemory().profile,
+      profile: {
+        name: parsed.profile?.name || null,
+        family: parsed.profile?.family || [],
+        preferences: parsed.profile?.preferences || [],
+        goals: parsed.profile?.goals || [],
+        projects: parsed.profile?.projects || []
+      },
       shortTermMemory: parsed.shortTermMemory || [],
       longTermMemory: parsed.longTermMemory || []
     };
@@ -85,6 +91,14 @@ export function rememberName(memory, text) {
 }
 
 export function rememberFamily(memory, text) {
+  if (!memory.profile) {
+    memory.profile = {};
+  }
+
+  if (!memory.profile.family) {
+    memory.profile.family = [];
+  }
+
   if (
     text.includes("اسم دخترم") ||
     text.includes("اسم پسرم") ||
@@ -100,6 +114,10 @@ export function rememberFamily(memory, text) {
 }
 
 export function rememberPreference(memory, text) {
+  if (!memory.profile.preferences) {
+    memory.profile.preferences = [];
+  }
+
   const triggers = [
     "دوست دارم",
     "علاقه دارم",
@@ -121,6 +139,14 @@ export function rememberPreference(memory, text) {
 }
 
 export function rememberGoal(memory, text) {
+  if (!memory.profile.goals) {
+    memory.profile.goals = [];
+  }
+
+  if (!memory.longTermMemory) {
+    memory.longTermMemory = [];
+  }
+
   const triggers = [
     "هدف من",
     "دارم روی",

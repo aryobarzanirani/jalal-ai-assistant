@@ -13,6 +13,7 @@ import {
   releaseLock
 } from "./lock.js";
 import { getDirectResponse } from "./router.js";
+import { classifyIntent } from "./classifier.js";
 
 export default {
   async fetch(request, env) {
@@ -67,10 +68,16 @@ export default {
       rememberFamily(memory, userText);
       rememberPreference(memory, userText);
 
-      const directResponse =
-        getDirectResponse(memory, userText);
+const intent = classifyIntent(userText);
 
-      if (directResponse) {
+let directResponse = null;
+
+if (intent !== "ai") {
+  directResponse =
+    getDirectResponse(memory, userText);
+}
+
+if (directResponse) {
         memory.shortTermMemory.push(
           `کاربر: ${userText}`
         );

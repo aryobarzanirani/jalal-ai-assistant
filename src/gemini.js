@@ -6,25 +6,36 @@ export async function askGemini(env, memory, userText) {
   const longTermMemory = memory.longTermMemory || [];
 
   const profileBlock = `
-=== اطلاعات قطعی ذخیره‌شده کاربر ===
+=== اطلاعات قطعی کاربر ===
 نام: ${profile.name || "ثبت نشده"}
-ترجیحات: ${
-    profile.preferences?.length
-      ? profile.preferences.join(" | ")
-      : "ثبت نشده"
-  }
-اهداف: ${
-    profile.goals?.length
-      ? profile.goals.join(" | ")
-      : "ثبت نشده"
-  }
+
+خانواده:
+${
+  profile.family?.length
+    ? profile.family.join("\n")
+    : "ثبت نشده"
+}
+
+علایق:
+${
+  profile.preferences?.length
+    ? profile.preferences.join("\n")
+    : "ثبت نشده"
+}
+
+اهداف:
+${
+  profile.goals?.length
+    ? profile.goals.join("\n")
+    : "ثبت نشده"
+}
 `;
 
   const longTermBlock = `
 === حافظه بلندمدت ===
 ${
   longTermMemory.length
-    ? longTermMemory.slice(-10).join("\n")
+    ? longTermMemory.slice(-15).join("\n")
     : "موردی ثبت نشده"
 }
 `;
@@ -49,6 +60,12 @@ ${shortTermBlock}
 
 === پیام جدید کاربر ===
 ${userText}
+
+قوانین مهم:
+- از اطلاعات حافظه استفاده کن.
+- تناقض نساز.
+- اگر اطلاعاتی در حافظه موجود نیست، صادقانه بگو.
+- اگر نام کاربر ثبت شده، در مواقع مناسب استفاده کن.
 
 پاسخ جلال دوم:
 `;
@@ -85,36 +102,31 @@ ${userText}
     if (!response.ok) {
       console.error(
         "Gemini Error:",
-        response.status,
         JSON.stringify(data)
       );
 
-      if (response.status === 429) {
+      const errorMessage =
+        data?.error?.message || "";
+
+      if (
+        errorMessage.includes("quota") ||
+        errorMessage.includes("Quota") ||
+        response.status === 429
+      ) {
         return "ظرفیت Gemini فعلاً تکمیل شده. کمی بعد دوباره تلاش کنید.";
       }
 
-      if (response.status >= 500) {
-        return "سرور مدل هوش مصنوعی موقتاً در دسترس نیست.";
-      }
-
-      return `خطای Gemini (${response.status})`;
+      return "در ارتباط با مدل هوش مصنوعی خطایی رخ داد.";
     }
 
-    const reply =
-      data?.candidates?.[0]?.content?.parts?.[0]?.text;
-
-    if (!reply) {
-      console.error(
-        "Gemini Empty Response:",
-        JSON.stringify(data)
-      );
-      return "پاسخ معتبری از مدل دریافت نشد.";
-    }
-
-    return reply;
+    return (
+      data?.candidates?.[0]?.content?.parts?.[0]?.text ||
+      "پاسخی دریافت نشد."
+    );
 
   } catch (err) {
     console.error("Gemini Fetch Error:", err);
-    return "ارتباط با Gemini برقرار نشد.";
+
+    return "در ارتباط با مدل هوش مصنوعی خطایی رخ داد.";
   }
 }

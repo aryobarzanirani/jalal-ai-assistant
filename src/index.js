@@ -103,4 +103,82 @@ export default {
           quota.warning
         );
 
-        return new
+        return new Response("OK");
+      }
+
+      let reply = await askGemini(
+        env,
+        memory,
+        userText
+      );
+
+      if (quota.warning) {
+        reply += `\n\n${quota.warning}`;
+      }
+
+      memory.shortTermMemory.push(
+        `کاربر: ${userText}`
+      );
+
+      memory.shortTermMemory.push(
+        `جلال دوم: ${reply}`
+      );
+
+      if (memory.shortTermMemory.length > 20) {
+        memory.shortTermMemory =
+          memory.shortTermMemory.slice(-20);
+      }
+
+      await saveMemory(env, chatId, memory);
+
+      await sendTelegram(
+        env,
+        chatId,
+        reply
+      );
+
+      return new Response("OK");
+
+    } catch (err) {
+      const errorMessage =
+        err?.stack ||
+        err?.message ||
+        JSON.stringify(err);
+
+      console.error(
+        "Worker Error FULL:",
+        errorMessage
+      );
+
+      if (chatId) {
+        try {
+          await sendTelegram(
+            env,
+            chatId,
+            "DEBUG ERROR:\n" +
+            String(errorMessage).slice(0, 3500)
+          );
+        } catch {}
+      }
+
+      return new Response(
+        "Internal Error",
+        {
+          status: 500
+        }
+      );
+
+    } finally {
+      if (chatId && lockAcquired) {
+        try {
+          await releaseLock(env, chatId);
+        } catch (e) {
+          console.error(
+            "Lock Release Error:",
+            e
+          );
+        }
+      }
+    }
+  }
+};

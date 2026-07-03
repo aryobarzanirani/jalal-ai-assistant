@@ -1,4 +1,5 @@
 import { SYSTEM_PROMPT } from "./prompt.js";
+import { getGeminiKeys } from "./gemini-keys.js";
 
 export async function askGemini(env, memory, userText) {
   const profile = memory.profile || {};
@@ -70,63 +71,75 @@ ${userText}
 پاسخ جلال دوم:
 `;
 
-  try {
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${env.GEMINI_API_KEY}`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          contents: [
-            {
-              role: "user",
-              parts: [
-                {
-                  text: prompt
-                }
-              ]
+  const apiKeys = getGeminiKeys(env);
+
+  if (!apiKeys.length) {
+    return "هیچ Gemini API Key تنظیم نشده است.";
+  }
+
+  for (const apiKey of apiKeys) {
+    try {
+      const response = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            contents: [
+              {
+                role: "user",
+                parts: [
+                  {
+                    text: prompt
+                  }
+                ]
+              }
+            ],
+            generationConfig: {
+              temperature: 0.7,
+              maxOutputTokens: 500
             }
-          ],
-          generationConfig: {
-            temperature: 0.7,
-            maxOutputTokens: 500
-          }
-        })
-      }
-    );
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      console.error(
-        "Gemini Error:",
-        JSON.stringify(data)
+          })
+        }
       );
 
-      const errorMessage =
-        data?.error?.message || "";
+      const data = await response.json();
 
-      if (
-        errorMessage.includes("quota") ||
-        errorMessage.includes("Quota") ||
-        response.status === 429
-      ) {
-        return "ظرفیت Gemini فعلاً تکمیل شده. کمی بعد دوباره تلاش کنید.";
+      if (!response.ok) {
+        const errorMessage =
+          data?.error?.message || "";
+
+        console.error(
+          "Gemini Error:",
+          JSON.stringify(data)
+        );
+
+        const quotaExceeded =
+          response.status === 429 ||
+          errorMessage.includes("quota") ||
+          errorMessage.includes("Quota");
+
+        if (quotaExceeded) {
+          continue;
+        }
+
+        return "در ارتباط با مدل هوش مصنوعی خطایی رخ داد.";
       }
 
-      return "در ارتباط با مدل هوش مصنوعی خطایی رخ داد.";
+      return (
+        data?.candidates?.[0]?.content?.parts?.[0]?.text ||
+        "پاسخی دریافت نشد."
+      );
+
+    } catch (err) {
+      console.error(
+        "Gemini Fetch Error:",
+        err
+      );
     }
-
-    return (
-      data?.candidates?.[0]?.content?.parts?.[0]?.text ||
-      "پاسخی دریافت نشد."
-    );
-
-  } catch (err) {
-    console.error("Gemini Fetch Error:", err);
-
-    return "در ارتباط با مدل هوش مصنوعی خطایی رخ داد.";
   }
+
+  return "ظرفیت تمام API Key های Gemini تکمیل شده است.";
 }

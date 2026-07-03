@@ -16,7 +16,7 @@ import { getDirectResponse } from "./router.js";
 export default {
   async fetch(request, env) {
     if (request.method !== "POST") {
-      return new Response("Jalal AI is running");
+  return new Response("VERSION TEST 777");
     }
 
     let chatId = null;

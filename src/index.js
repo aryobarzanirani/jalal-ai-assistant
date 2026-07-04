@@ -74,7 +74,7 @@ export default {
       const directResponse =
         getDirectResponse(memory, userText);
 
-      if (intent === "router" && directResponse) {
+      if (directResponse) {
         memory.shortTermMemory.push(
           `کاربر: ${userText}`
         );

@@ -1,3 +1,4 @@
+import { extractRelationships } from "./relationship.js";
 import { extractEntities } from "./entity.js";
 import { classifyIntent } from "./intent.js";
 import { getFallbackResponse } from "./fallback.js";
@@ -71,6 +72,7 @@ export default {
       rememberFamily(memory, userText);
       rememberPreference(memory, userText);
       extractEntities(memory, userText);
+      extractRelationships(memory, userText);
       
       const intent = classifyIntent(userText);
 

@@ -25,9 +25,13 @@ export function getDirectResponse(memory, userText) {
     return "خوبم. آماده‌ام کمکت کنم.";
   }
 
-  if (text.includes("هستی")) {
-    return "بله، در خدمتم.";
-  }
+  if (
+  text === "هستی؟" ||
+  text === "هستی" ||
+  text === "آنجایی؟"
+) {
+  return "بله، در خدمتم.";
+}
 
   // Identity
   if (
@@ -52,33 +56,61 @@ export function getDirectResponse(memory, userText) {
   }
 
   // Family
-  if (
-    text.includes("اسم دخترم چیه") ||
-    text.includes("اسم دخترم چیست")
-  ) {
-    const daughter =
-      memory?.profile?.family?.daughter;
+if (
+  text.includes("اسم دخترم چیه") ||
+  text.includes("اسم دخترم چیست")
+) {
+  const daughter = memory?.profile?.family?.daughter;
 
-    if (daughter) {
-      return `اسم دختر شما ${daughter} است.`;
-    }
-
-    return "اطلاعاتی درباره دختر شما ثبت نشده است.";
+  if (daughter) {
+    return `نام دختر شما ${daughter} است.`;
   }
 
-  if (
-    text.includes("اسم همسرم چیه") ||
-    text.includes("اسم زنم چیه")
-  ) {
-    const wife =
-      memory?.profile?.family?.wife;
+  return "نام دختر شما در حافظه ثبت نشده است.";
+}
 
-    if (wife) {
-      return `اسم همسر شما ${wife} است.`;
-    }
+  // Wife
+if (
+  text.includes("اسم همسرم چیه") ||
+  text.includes("اسم همسرم چیست") ||
+  text.includes("اسم زنم چیه")
+) {
+  const wife = memory?.profile?.family?.wife;
 
-    return "اطلاعاتی درباره همسر شما ثبت نشده است.";
+  if (wife) {
+    return `نام همسر شما ${wife} است.`;
   }
+
+  return "نام همسر شما در حافظه ثبت نشده است.";
+}
+
+// Husband
+if (
+  text.includes("اسم شوهرم چیه") ||
+  text.includes("اسم شوهرم چیست")
+) {
+  const husband = memory?.profile?.family?.husband;
+
+  if (husband) {
+    return `نام همسر شما ${husband} است.`;
+  }
+
+  return "نام همسر شما در حافظه ثبت نشده است.";
+}
+
+// Son
+if (
+  text.includes("اسم پسرم چیه") ||
+  text.includes("اسم پسرم چیست")
+) {
+  const son = memory?.profile?.family?.son;
+
+  if (son) {
+    return `نام پسر شما ${son} است.`;
+  }
+
+  return "نام پسر شما در حافظه ثبت نشده است.";
+}
 
   // Preferences
   if (
@@ -112,6 +144,18 @@ export function getDirectResponse(memory, userText) {
 
     return "هنوز پروژه‌ای ثبت نشده است.";
   }
+if (
+  text.includes("هدف من چیه") ||
+  text.includes("هدف من چیست")
+) {
+  const goals = memory?.profile?.goals || [];
+
+  if (goals.length) {
+    return goals[goals.length - 1];
+  }
+
+  return "هدفی از شما در حافظه ثبت نشده است.";
+}
 
   // Memory Status
   if (text.includes("وضعیت حافظه")) {
@@ -137,4 +181,4 @@ export function getDirectResponse(memory, userText) {
   }
 
   return null;
-}
+                         }

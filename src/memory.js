@@ -1,3 +1,55 @@
+export function rememberSemantic(memory, text) {
+  if (!memory.semanticMemory) {
+    memory.semanticMemory = [];
+  }
+
+  const t = text.trim();
+
+  let category = "general";
+  let importance = 3;
+
+  if (
+    t.includes("دخترم") ||
+    t.includes("پسرم") ||
+    t.includes("همسرم")
+  ) {
+    category = "family";
+    importance = 8;
+  }
+
+  if (
+    t.includes("کار") ||
+    t.includes("شیفت")
+  ) {
+    category = "work";
+    importance = 6;
+  }
+
+  if (
+    t.includes("باید") ||
+    t.includes("مهم")
+  ) {
+    importance += 1;
+  }
+
+  if (importance < 5) {
+    return;
+  }
+
+  memory.semanticMemory.push({
+    text: t,
+    category,
+    importance,
+    timestamp: new Date()
+      .toISOString()
+      .slice(0, 10)
+  });
+
+  if (memory.semanticMemory.length > 100) {
+    memory.semanticMemory =
+      memory.semanticMemory.slice(-100);
+  }
+}
 export async function getMemory(env, chatId) {
   const data = await env.MEMORY.get(chatId);
 
@@ -42,6 +94,7 @@ export async function getMemory(env, chatId) {
       longTermMemory: parsed.longTermMemory || [],
       relationships: parsed.relationships || [],
 
+      semanticMemory: parsed.semanticMemory || []
       dailyContext: parsed.dailyContext || {
         date: null,
         tasks: [],
@@ -70,6 +123,8 @@ function createDefaultMemory() {
         son: null
       },
 
+      semanticMemory: []
+        
       preferences: [],
       goals: [],
       projects: []

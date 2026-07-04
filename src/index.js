@@ -1,3 +1,7 @@
+import {
+  detectNeedPlanning,
+  getPlanningResponse
+} from "./decision-engine.js";
 import { extractRelationships } from "./relationship.js";
 import { extractEntities } from "./entity.js";
 import { classifyIntent } from "./intent.js";
@@ -88,7 +92,20 @@ export default {
           `جلال دوم: ${directResponse}`
         );
 
-        if (memory.shortTermMemory.length > 20) {
+        if (detectNeedPlanning(userText)) {
+  const planningReply =
+    getPlanningResponse();
+
+  await sendTelegram(
+    env,
+    chatId,
+    planningReply
+  );
+
+  return new Response("OK");
+        }
+        
+        if (memoryortTermMemory.length > 20) {
           memory.shortTermMemory =
             memory.shortTermMemory.slice(-20);
         }

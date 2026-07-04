@@ -122,8 +122,6 @@ function createDefaultMemory() {
         daughter: null,
         son: null
       },
-
-      semanticMemory: [],
         
       preferences: [],
       goals: [],
@@ -139,7 +137,7 @@ function createDefaultMemory() {
     shortTermMemory: [],
     longTermMemory: [],
     relationships: [],
-
+    semanticMemory: [],
     dailyContext: {
       date: null,
       tasks: [],

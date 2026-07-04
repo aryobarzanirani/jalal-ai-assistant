@@ -18,9 +18,10 @@ import {
   rememberFamily,
   rememberPreference,
   rememberRelationship,
-  rememberSemantic
+  rememberSemantic,
   isMemoryDump
 } from "./memory.js";
+
 import { sendTelegram } from "./telegram.js";
 import {
   acquireLock,

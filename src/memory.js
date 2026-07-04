@@ -49,6 +49,12 @@ export async function getMemory(env, chatId) {
       longTermMemory:
         parsed.longTermMemory || []
       relationships: parsed.relationships || []
+    dailyContext: {
+  date: null,
+  tasks: [],
+  events: [],
+  mood: null
+}
     };
   } catch {
     return createDefaultMemory();
@@ -88,6 +94,12 @@ function createDefaultMemory() {
     shortTermMemory: [],
     longTermMemory: []
     relationships: []
+    dailyContext: parsed.dailyContext || {
+  date: null,
+  tasks: [],
+  events: [],
+  mood: null
+  }
   };
 }
 

@@ -72,6 +72,21 @@ function alreadyExists(list, text) {
   });
 }
 function sanitizeMemory(memory) {
+  memory.profile ??= {};
+memory.profile.preferences ??= [];
+memory.profile.goals ??= [];
+
+memory.dailyContext ??= {
+  date: null,
+  tasks: [],
+  events: [],
+  mood: null
+};
+
+memory.relationships ??= [];
+memory.semanticMemory ??= [];
+memory.shortTermMemory ??= [];
+memory.longTermMemory ??= [];
   if (!memory) {
     return createDefaultMemory();
   }
@@ -250,7 +265,8 @@ export function rememberName(memory, text) {
       let name = match[1].trim();
 
       name = name.replace(/(است|هست)$/, "").trim();
-
+if (!name) return;
+      
       if (isValidName(name)) {
         memory.profile.name = name;
         return;
@@ -278,6 +294,7 @@ export function rememberFamily(memory, text) {
     if (match) {
       let name = match[1].trim();
       name = name.replace(/(است|هست)$/, "").trim();
+      if (!name) return;
       memory.profile.family[item.key] = name;
       return;
     }

@@ -19,9 +19,8 @@ function shouldSkipText(text, max = 1000) {
   return false;
 }
 
-    importance += 1;
-}
 export function rememberSemantic(memory, text) {
+  
   if (shouldSkipText(text, 1500)) return;
 
   if (!memory.semanticMemory) {

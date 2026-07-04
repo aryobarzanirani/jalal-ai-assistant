@@ -1,4 +1,4 @@
-import { calculatePriority } from "./priority-engine.js";
+ import { calculatePriority } from "./priority-engine.js";
 import { updateDailyContext } from "./daily-context.js";
 import {
   detectNeedPlanning,
@@ -75,7 +75,11 @@ export default {
       }
 
       const memory = await getMemory(env, chatId);
-
+const lines = userText
+  .split("\n")
+  .map(x => x.trim())
+  .filter(Boolean);
+      
       if (!userText) {
   await sendTelegram(
     env,
@@ -92,18 +96,21 @@ if (isMemoryDump(userText)) {
 
 const memory = await getMemory(env, chatId);
       
-      rememberName(memory, userText);
-      rememberGoal(memory, userText);
-      rememberFamily(memory, userText);
-      rememberRelationship(memory, userText);
-      rememberPreference(memory, userText);
-      rememberSemantic(memory, userText);
+      for (const line of lines) {
+  rememberName(memory, line);
+  rememberGoal(memory, line);
+  rememberFamily(memory, line);
+  rememberRelationship(memory, line);
+  rememberPreference(memory, line);
+  rememberSemantic(memory, line);
 
-      extractEntities(memory, userText);
-      extractRelationships(memory, userText);
-      updateDailyContext(memory, userText);
-const priorityData =
-  calculatePriority(memory, userText);
+  extractEntities(memory, line);
+  extractRelationships(memory, line);
+  updateDailyContext(memory, line);
+}
+for (const line of lines) {
+  const priorityData =
+  calculatePriority(memory, line);
 
 if (priorityData.score >= 5) {
   if (!memory.priorities) {
@@ -111,7 +118,7 @@ if (priorityData.score >= 5) {
   }
 
   memory.priorities.push({
-    text: userText,
+    text: line,
     score: priorityData.score,
     category: priorityData.category,
     timestamp: new Date()
@@ -124,7 +131,8 @@ if (priorityData.score >= 5) {
       memory.priorities.slice(-50);
   }
 }
-      classifyIntent(userText);
+
+classifyIntent(userText);
 
       const directResponse =
         getDirectResponse(memory, userText);

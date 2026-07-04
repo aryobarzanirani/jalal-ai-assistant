@@ -43,6 +43,8 @@ export async function getMemory(env, chatId) {
  projects: []
 },
 
+      relationships: parsed.relationships || []
+        
       shortTermMemory:
         parsed.shortTermMemory || [],
 
@@ -83,7 +85,9 @@ function createDefaultMemory() {
   places: [],
   projects: []
 },
-    
+
+    relationships: []
+      
     shortTermMemory: [],
     longTermMemory: []
   };

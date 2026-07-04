@@ -15,9 +15,9 @@ import {
   rememberName,
   rememberGoal,
   rememberFamily,
-  rememberPreference
-  rememberRelationship
-  rememberSemantic
+  rememberPreference,
+  rememberRelationship,
+  rememberSemantic,
 } from "./memory.js";
 import { sendTelegram } from "./telegram.js";
 import {
@@ -98,20 +98,17 @@ export default {
           `جلال دوم: ${directResponse}`
         );
 
-        if (detectNeedPlanning(userText)) {
-  const planningReply =
-    getPlanningResponse();
+   await sendTelegram(env, chatId, directResponse);
 
-  await sendTelegram(
-    env,
-    chatId,
-    planningReply
-  );
+   if (detectNeedPlanning(userText)) {
+      const planningReply = getPlanningResponse();
+      await sendTelegram(env, chatId, planningReply);
+   }
 
-  return new Response("OK");
+   return new Response("OK");
         }
         
-        if (memoryortTermMemory.length > 20) {
+        if (memory.shortTermMemory.length > 20) {
           memory.shortTermMemory =
             memory.shortTermMemory.slice(-20);
         }

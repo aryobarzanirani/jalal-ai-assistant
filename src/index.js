@@ -16,6 +16,7 @@ import {
   rememberGoal,
   rememberFamily,
   rememberPreference
+  rememberRelationship
 } from "./memory.js";
 import { sendTelegram } from "./telegram.js";
 import {
@@ -75,6 +76,7 @@ export default {
       rememberName(memory, userText);
       rememberGoal(memory, userText);
       rememberFamily(memory, userText);
+      rememberRelationship(memory, userText);
       rememberPreference(memory, userText);
       extractEntities(memory, userText);
       extractRelationships(memory, userText);

@@ -1,7 +1,7 @@
 import { updateDailyContext } from "./daily-context.js";
 import {
   detectNeedPlanning,
-  getPlanningResponse
+ getPlanningResponse
 } from "./decision-engine.js";
 import { extractRelationships } from "./relationship.js";
 import { extractEntities } from "./entity.js";
@@ -17,7 +17,7 @@ import {
   rememberFamily,
   rememberPreference,
   rememberRelationship,
-  rememberSemantic,
+  rememberSemantic
 } from "./memory.js";
 import { sendTelegram } from "./telegram.js";
 import {
@@ -58,7 +58,6 @@ export default {
           chatId,
           "در حال پردازش پیام قبلی هستم. لطفاً چند ثانیه صبر کنید."
         );
-
         return new Response("OK");
       }
 
@@ -68,7 +67,6 @@ export default {
           chatId,
           "فعلاً فقط پیام متنی را پردازش می‌کنم."
         );
-
         return new Response("OK");
       }
 
@@ -80,64 +78,35 @@ export default {
       rememberRelationship(memory, userText);
       rememberPreference(memory, userText);
       rememberSemantic(memory, userText);
+
       extractEntities(memory, userText);
       extractRelationships(memory, userText);
       updateDailyContext(memory, userText);
-      
-      const intent = classifyIntent(userText);
+
+      classifyIntent(userText);
 
       const directResponse =
         getDirectResponse(memory, userText);
 
+      let reply;
+
       if (directResponse) {
-        memory.shortTermMemory.push(
-          `کاربر: ${userText}`
-        );
+        reply = directResponse;
+      } else {
+        const relevantMemory =
+          getRelevantMemory(memory, userText);
 
-        memory.shortTermMemory.push(
-          `جلال دوم: ${directResponse}`
-        );
-
-   await sendTelegram(env, chatId, directResponse);
-
-   if (detectNeedPlanning(userText)) {
-      const planningReply = getPlanningResponse();
-      await sendTelegram(env, chatId, planningReply);
-   }
-
-   return new Response("OK");
+        try {
+          reply = await askGemini(
+            env,
+            relevantMemory,
+            userText
+          );
+        } catch {
+          reply = getFallbackResponse(userText);
         }
-        
-        if (memory.shortTermMemory.length > 20) {
-          memory.shortTermMemory =
-            memory.shortTermMemory.slice(-20);
-        }
-
-        await saveMemory(env, chatId, memory);
-
-        await sendTelegram(
-          env,
-          chatId,
-          directResponse
-        );
-
-        return new Response("OK");
       }
 
-const relevantMemory =
-  getRelevantMemory(memory, userText);
-
-let reply;
-
-try {
-  reply = await askGemini(
-    env,
-    relevantMemory,
-    userText
-  );
-} catch {
-  reply = getFallbackResponse(userText);
-}
       memory.shortTermMemory.push(
         `کاربر: ${userText}`
       );
@@ -153,11 +122,18 @@ try {
 
       await saveMemory(env, chatId, memory);
 
-      await sendTelegram(
-        env,
-        chatId,
-        reply
-      );
+      await sendTelegram(env, chatId, reply);
+
+      if (detectNeedPlanning(userText)) {
+        const planningReply =
+          getPlanningResponse();
+
+        await sendTelegram(
+          env,
+          chatId,
+          planningReply
+        );
+      }
 
       return new Response("OK");
 
@@ -182,16 +158,17 @@ try {
         } catch {}
       }
 
-      return new Response("Internal Error", {
-        status: 500
-      });
+      return new Response("OK");
 
     } finally {
       if (chatId && lockAcquired) {
         try {
           await releaseLock(env, chatId);
         } catch (e) {
-          console.error("Lock Release Error:", e);
+          console.error(
+            "Lock Release Error:",
+            e
+          );
         }
       }
     }

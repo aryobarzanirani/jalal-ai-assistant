@@ -167,4 +167,94 @@ export function rememberFamily(memory, text) {
     return;
   }
 
-  match = t.match(/
+  match = t.match(/اسم همسرم\s+(.+?)\s*(است|هست|ه)?$/);
+  if (match) {
+    memory.profile.family.wife = match[1].trim();
+    return;
+  }
+
+  match = t.match(/اسم زنم\s+(.+?)\s*(است|هست|ه)?$/);
+  if (match) {
+    memory.profile.family.wife = match[1].trim();
+    return;
+  }
+
+  match = t.match(/اسم شوهرم\s+(.+?)\s*(است|هست|ه)?$/);
+  if (match) {
+    memory.profile.family.husband = match[1].trim();
+  }
+}
+
+export function rememberPreference(memory, text) {
+  if (!memory.profile.preferences) {
+    memory.profile.preferences = [];
+  }
+
+  const triggers = [
+    "دوست دارم",
+    "علاقه دارم",
+    "علاقه‌مندم"
+  ];
+
+  for (const trigger of triggers) {
+    if (text.includes(trigger)) {
+      memory.profile.preferences.push(text);
+
+      if (memory.profile.preferences.length > 20) {
+        memory.profile.preferences =
+          memory.profile.preferences.slice(-20);
+      }
+
+      return;
+    }
+  }
+}
+
+export function rememberGoal(memory, text) {
+  if (!memory.profile.goals) {
+    memory.profile.goals = [];
+  }
+
+  if (!memory.longTermMemory) {
+    memory.longTermMemory = [];
+  }
+
+  const t = text.trim();
+
+  if (
+    t.includes("چیه") ||
+    t.includes("چیست") ||
+    t.includes("?") ||
+    t.includes("؟")
+  ) {
+    return;
+  }
+
+  const triggers = [
+    "هدف من",
+    "دارم روی",
+    "میخوام",
+    "می‌خوام",
+    "در حال ساخت",
+    "در حال توسعه"
+  ];
+
+  for (const trigger of triggers) {
+    if (t.includes(trigger)) {
+      memory.profile.goals.push(t);
+      memory.longTermMemory.push(t);
+
+      if (memory.profile.goals.length > 20) {
+        memory.profile.goals =
+          memory.profile.goals.slice(-20);
+      }
+
+      if (memory.longTermMemory.length > 30) {
+        memory.longTermMemory =
+          memory.longTermMemory.slice(-30);
+      }
+
+      return;
+    }
+  }
+}

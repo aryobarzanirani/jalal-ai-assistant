@@ -19,6 +19,7 @@ import {
   rememberPreference,
   rememberRelationship,
   rememberSemantic
+  isMemoryDump
 } from "./memory.js";
 import { sendTelegram } from "./telegram.js";
 import {
@@ -73,6 +74,16 @@ export default {
 
       const memory = await getMemory(env, chatId);
 
+      if (isMemoryDump(userText)) {
+  await sendTelegram(
+    env,
+    chatId,
+    "پیام JSON/KV شناسایی شد و برای جلوگیری از خراب شدن حافظه نادیده گرفته شد."
+  );
+
+  return new Response("OK");
+      }
+      
       rememberName(memory, userText);
       rememberGoal(memory, userText);
       rememberFamily(memory, userText);

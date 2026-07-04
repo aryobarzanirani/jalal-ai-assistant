@@ -1,3 +1,4 @@
+import { classifyIntent } from "./intent.js";
 import { askGemini } from "./gemini.js";
 import {
   getMemory,
@@ -13,7 +14,6 @@ import {
   releaseLock
 } from "./lock.js";
 import { getDirectResponse } from "./router.js";
-import { classifyIntent } from "./classifier.js";
 
 export default {
   async fetch(request, env) {
@@ -68,16 +68,12 @@ export default {
       rememberFamily(memory, userText);
       rememberPreference(memory, userText);
 
-const intent = classifyIntent(userText);
+      const intent = classifyIntent(userText);
 
-let directResponse = null;
+      const directResponse =
+        getDirectResponse(memory, userText);
 
-if (intent !== "ai") {
-  directResponse =
-    getDirectResponse(memory, userText);
-}
-
-if (directResponse) {
+      if (intent === "router" && directResponse) {
         memory.shortTermMemory.push(
           `کاربر: ${userText}`
         );

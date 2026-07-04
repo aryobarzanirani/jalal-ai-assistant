@@ -1,4 +1,12 @@
 export function updateDailyContext(memory, userText) {
+  if (
+  !userText ||
+  userText.length > 1000 ||
+  userText.trim().startsWith("{") ||
+  userText.includes('"profile"')
+) {
+  return;
+  }
   if (!memory.dailyContext) {
     memory.dailyContext = {
       date: null,

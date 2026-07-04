@@ -1,3 +1,4 @@
+import { calculatePriority } from "./priority-engine.js";
 import { updateDailyContext } from "./daily-context.js";
 import {
   detectNeedPlanning,
@@ -82,7 +83,28 @@ export default {
       extractEntities(memory, userText);
       extractRelationships(memory, userText);
       updateDailyContext(memory, userText);
+const priorityData =
+  calculatePriority(memory, userText);
 
+if (priorityData.score >= 5) {
+  if (!memory.priorities) {
+    memory.priorities = [];
+  }
+
+  memory.priorities.push({
+    text: userText,
+    score: priorityData.score,
+    category: priorityData.category,
+    timestamp: new Date()
+      .toISOString()
+      .slice(0, 10)
+  });
+
+  if (memory.priorities.length > 50) {
+    memory.priorities =
+      memory.priorities.slice(-50);
+  }
+}
       classifyIntent(userText);
 
       const directResponse =

@@ -186,4 +186,4 @@ export function getDirectResponse(memory, userText) {
   }
 
   return null;
-      }
+}

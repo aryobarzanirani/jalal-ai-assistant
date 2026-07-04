@@ -45,28 +45,18 @@ export function getDirectResponse(memory, userText) {
 
   // User Name
   if (
-    text.includes("اسم من چیه") ||
-    text.includes("اسم من چیست")
-  ) {
-    if (memory?.profile?.name) {
-      return `اسم شما ${memory.profile.name} است.`;
-    }
-
-    return "نام شما هنوز در حافظه من ثبت نشده است.";
-  }
+  userText.includes("اسم من") &&
+  memory.profile?.name
+) {
+  return `متوجه شدم ${memory.profile.name}.`;
+}
 
   // Family
 if (
-  text.includes("اسم دخترم چیه") ||
-  text.includes("اسم دخترم چیست")
+  userText.includes("اسم دخترم") &&
+  memory.profile?.family?.daughter
 ) {
-  const daughter = memory?.profile?.family?.daughter;
-
-  if (daughter) {
-    return `نام دختر شما ${daughter} است.`;
-  }
-
-  return "نام دختر شما در حافظه ثبت نشده است.";
+  return `متوجه شدم، اسم دختر شما ${memory.profile.family.daughter} است.`;
 }
 
   // Wife
@@ -80,9 +70,6 @@ if (
   if (wife) {
     return `نام همسر شما ${wife} است.`;
   }
-
-  return "نام همسر شما در حافظه ثبت نشده است.";
-}
 
 // Husband
 if (
@@ -109,9 +96,6 @@ if (
     return `نام پسر شما ${son} است.`;
   }
 
-  return "نام پسر شما در حافظه ثبت نشده است.";
-}
-
   // Preferences
   if (
     text.includes("علایق من چیه") ||
@@ -130,6 +114,18 @@ if (
     return "هنوز علاقه‌ای از شما ثبت نشده است.";
   }
 
+  //task
+  if (
+  userText.includes("باید")
+) {
+  return "متوجه شدم، این مورد را در برنامه‌ات نگه می‌دارم.";
+  }
+  if (
+  userText.includes("شیفت") ||
+  userText.includes("بیمارستان")
+) {
+  return "متوجه شدم، ثبت شد.";
+  }
   // Goals
   if (
     text.includes("روی چه پروژه‌ای کار می‌کنم") ||

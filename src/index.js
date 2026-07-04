@@ -1,3 +1,4 @@
+import { extractEntities } from "./entity.js";
 import { classifyIntent } from "./intent.js";
 import { getFallbackResponse } from "./fallback.js";
 import { getRelevantMemory } from "./retriever.js";
@@ -69,7 +70,8 @@ export default {
       rememberGoal(memory, userText);
       rememberFamily(memory, userText);
       rememberPreference(memory, userText);
-
+      extractEntities(memory, userText);
+      
       const intent = classifyIntent(userText);
 
       const directResponse =

@@ -79,15 +79,6 @@ const lines = userText
   .map(x => x.trim())
   .filter(Boolean);
       
-      if (!userText) {
-  await sendTelegram(
-    env,
-    chatId,
-    "فعلاً فقط پیام متنی را پردازش می‌کنم."
-  );
-  return new Response("OK");
-}
-
 if (isMemoryDump(userText)) {
   console.log("MEMORY DUMP BLOCKED");
   return new Response("OK");

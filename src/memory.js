@@ -47,8 +47,9 @@ export async function getMemory(env, chatId) {
         parsed.shortTermMemory || [],
 
       longTermMemory:
-        parsed.longTermMemory || []
+        parsed.longTermMemory || [],
       relationships: parsed.relationships || []
+        
     dailyContext: {
   date: null,
   tasks: [],

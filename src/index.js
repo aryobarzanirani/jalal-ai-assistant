@@ -19,7 +19,8 @@ import {
   rememberPreference,
   rememberRelationship,
   rememberSemantic,
-} isMemoryDump
+  isMemoryDump
+} 
   from "./memory.js";
 
 import { sendTelegram } from "./telegram.js";

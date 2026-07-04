@@ -11,7 +11,8 @@ export function rememberSemantic(memory, text) {
   if (
     t.includes("دخترم") ||
     t.includes("پسرم") ||
-    t.includes("همسرم")
+    t.includes("همسرم") ||
+    t.includes("خانواده")
   ) {
     category = "family";
     importance = 8;
@@ -19,10 +20,21 @@ export function rememberSemantic(memory, text) {
 
   if (
     t.includes("کار") ||
-    t.includes("شیفت")
+    t.includes("شیفت") ||
+    t.includes("بیمارستان")
   ) {
     category = "work";
-    importance = 6;
+    importance = 7;
+  }
+
+  if (
+    t.includes("امروز") ||
+    t.includes("فردا") ||
+    t.includes("امشب") ||
+    t.includes("استراحت")
+  ) {
+    category = "schedule";
+    importance = 7;
   }
 
   if (
@@ -35,6 +47,12 @@ export function rememberSemantic(memory, text) {
   if (importance < 5) {
     return;
   }
+
+  const exists = memory.semanticMemory.find(
+    item => item.text === t
+  );
+
+  if (exists) return;
 
   memory.semanticMemory.push({
     text: t,
@@ -165,6 +183,7 @@ function isValidName(name) {
   return true;
 }
 
+
 export function rememberName(memory, text) {
   const t = text.trim();
 
@@ -181,7 +200,6 @@ export function rememberName(memory, text) {
 
       name = name
         .replace(/(است|هست)$/,"")
-        .replace(/ه$/,"")
         .trim();
 
       if (isValidName(name)) {
@@ -191,7 +209,6 @@ export function rememberName(memory, text) {
     }
   }
 }
-
 export function rememberFamily(memory, text) {
   if (!memory.profile.family) {
     memory.profile.family = {
@@ -313,11 +330,23 @@ export function rememberRelationship(memory, text) {
     t.match(/^(.+?)\s+مادر\s+(.+?)\s+(است|هست)$/);
 
   if (motherMatch) {
-    memory.relationships.push({
+    const relation = {
       from: motherMatch[1].trim(),
       relation: "mother_of",
       to: motherMatch[2].trim()
-    });
+    };
+
+    const exists = memory.relationships.find(
+      item =>
+        item.from === relation.from &&
+        item.to === relation.to &&
+        item.relation === relation.relation
+    );
+
+    if (!exists) {
+      memory.relationships.push(relation);
+    }
+
     return;
   }
 
@@ -325,10 +354,21 @@ export function rememberRelationship(memory, text) {
     t.match(/^(.+?)\s+پدر\s+(.+?)\s+(است|هست)$/);
 
   if (fatherMatch) {
-    memory.relationships.push({
+    const relation = {
       from: fatherMatch[1].trim(),
       relation: "father_of",
       to: fatherMatch[2].trim()
-    });
-  }
+    };
+
+    const exists = memory.relationships.find(
+      item =>
+        item.from === relation.from &&
+        item.to === relation.to &&
+        item.relation === relation.relation
+    );
+
+    if (!exists) {
+      memory.relationships.push(relation);
     }
+  }
+}

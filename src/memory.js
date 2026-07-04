@@ -111,7 +111,7 @@ export async function getMemory(env, chatId) {
       shortTermMemory: parsed.shortTermMemory || [],
       longTermMemory: parsed.longTermMemory || [],
       relationships: parsed.relationships || [],
-
+      priorities: parsed.priorities || [],
       semanticMemory: parsed.semanticMemory || [],
       dailyContext: parsed.dailyContext || {
         date: null,
@@ -155,6 +155,7 @@ function createDefaultMemory() {
     shortTermMemory: [],
     longTermMemory: [],
     relationships: [],
+    priorities: [],
     semanticMemory: [],
     dailyContext: {
       date: null,

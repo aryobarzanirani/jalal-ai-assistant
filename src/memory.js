@@ -129,6 +129,31 @@ export async function saveMemory(env, chatId, memory) {
   await env.MEMORY.put(chatId, JSON.stringify(memory));
 }
 
+export function isMemoryDump(text) {
+  if (!text) return false;
+
+  const t = text.trim();
+
+  if (
+    t.startsWith("{") &&
+    t.includes('"profile"') &&
+    t.includes('"shortTermMemory"')
+  ) {
+    return true;
+  }
+
+  if (
+    t.length > 500 &&
+    t.includes("{") &&
+    t.includes("}") &&
+    t.includes('":')
+  ) {
+    return true;
+  }
+
+  return false;
+}
+
 function createDefaultMemory() {
   return {
     profile: {

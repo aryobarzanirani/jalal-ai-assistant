@@ -7,17 +7,41 @@ export async function getMemory(env, chatId) {
 
   try {
     const parsed = JSON.parse(data);
+    const oldFamily = parsed.profile?.family;
 
     return {
       profile: {
         name: parsed.profile?.name || null,
-        family: parsed.profile?.family || [],
-        preferences: parsed.profile?.preferences || [],
-        goals: parsed.profile?.goals || [],
-        projects: parsed.profile?.projects || []
+
+        family: Array.isArray(oldFamily)
+          ? {
+              wife: null,
+              husband: null,
+              daughter: null,
+              son: null
+            }
+          : {
+              wife: oldFamily?.wife || null,
+              husband: oldFamily?.husband || null,
+              daughter: oldFamily?.daughter || null,
+              son: oldFamily?.son || null
+            },
+
+        preferences:
+          parsed.profile?.preferences || [],
+
+        goals:
+          parsed.profile?.goals || [],
+
+        projects:
+          parsed.profile?.projects || []
       },
-      shortTermMemory: parsed.shortTermMemory || [],
-      longTermMemory: parsed.longTermMemory || []
+
+      shortTermMemory:
+        parsed.shortTermMemory || [],
+
+      longTermMemory:
+        parsed.longTermMemory || []
     };
   } catch {
     return createDefaultMemory();
@@ -35,11 +59,19 @@ function createDefaultMemory() {
   return {
     profile: {
       name: null,
-      family: [],
+
+      family: {
+        wife: null,
+        husband: null,
+        daughter: null,
+        son: null
+      },
+
       preferences: [],
       goals: [],
       projects: []
     },
+
     shortTermMemory: [],
     longTermMemory: []
   };
@@ -92,28 +124,50 @@ export function rememberName(memory, text) {
 
 export function rememberFamily(memory, text) {
   if (!memory.profile.family) {
-    memory.profile.family = [];
+    memory.profile.family = {
+      wife: null,
+      husband: null,
+      daughter: null,
+      son: null
+    };
   }
 
-  const familyPatterns = [
-    "دخترم",
-    "پسرم",
-    "همسرم",
-    "زنم",
-    "شوهرم"
-  ];
+  const t = text.trim();
 
-  for (const pattern of familyPatterns) {
-    if (text.includes(pattern)) {
-      memory.profile.family.push(text);
+  let match;
 
-      if (memory.profile.family.length > 20) {
-        memory.profile.family =
-          memory.profile.family.slice(-20);
-      }
+  match = t.match(/اسم دخترم\s+(.+?)\s*(است|هست|ه)?$/);
+  if (match) {
+    memory.profile.family.daughter =
+      match[1].trim();
+    return;
+  }
 
-      return;
-    }
+  match = t.match(/اسم پسرم\s+(.+?)\s*(است|هست|ه)?$/);
+  if (match) {
+    memory.profile.family.son =
+      match[1].trim();
+    return;
+  }
+
+  match = t.match(/اسم همسرم\s+(.+?)\s*(است|هست|ه)?$/);
+  if (match) {
+    memory.profile.family.wife =
+      match[1].trim();
+    return;
+  }
+
+  match = t.match(/اسم زنم\s+(.+?)\s*(است|هست|ه)?$/);
+  if (match) {
+    memory.profile.family.wife =
+      match[1].trim();
+    return;
+  }
+
+  match = t.match(/اسم شوهرم\s+(.+?)\s*(است|هست|ه)?$/);
+  if (match) {
+    memory.profile.family.husband =
+      match[1].trim();
   }
 }
 

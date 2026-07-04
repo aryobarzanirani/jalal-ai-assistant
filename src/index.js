@@ -1,4 +1,5 @@
 import { classifyIntent } from "./intent.js";
+import { getRelevantMemory } from "./retriever.js";
 import { askGemini } from "./gemini.js";
 import {
   getMemory,
@@ -98,12 +99,14 @@ export default {
         return new Response("OK");
       }
 
-      const reply = await askGemini(
-        env,
-        memory,
-        userText
-      );
+const relevantMemory =
+  getRelevantMemory(memory, userText);
 
+const reply = await askGemini(
+  env,
+  relevantMemory,
+  userText
+);
       memory.shortTermMemory.push(
         `کاربر: ${userText}`
       );

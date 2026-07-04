@@ -1,3 +1,4 @@
+import { updateDailyContext } from "./daily-context.js";
 import {
   detectNeedPlanning,
   getPlanningResponse
@@ -77,6 +78,7 @@ export default {
       rememberPreference(memory, userText);
       extractEntities(memory, userText);
       extractRelationships(memory, userText);
+      updateDailyContext(memory, userText);
       
       const intent = classifyIntent(userText);
 

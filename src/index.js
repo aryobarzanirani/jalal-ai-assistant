@@ -74,7 +74,6 @@ export default {
         return new Response("OK");
       }
 
-      const memory = await getMemory(env, chatId);
 const lines = userText
   .split("\n")
   .map(x => x.trim())
@@ -110,51 +109,53 @@ const memory = await getMemory(env, chatId);
 }
 for (const line of lines) {
   const priorityData =
-  calculatePriority(memory, line);
+    calculatePriority(memory, line);
 
-if (priorityData.score >= 5) {
-  if (!memory.priorities) {
-    memory.priorities = [];
+  if (priorityData.score >= 5) {
+    if (!memory.priorities) {
+      memory.priorities = [];
+    }
+
+    memory.priorities.push({
+      text: line,
+      score: priorityData.score,
+      category: priorityData.category,
+      timestamp: new Date()
+        .toISOString()
+        .slice(0, 10)
+    });
   }
+}
 
-  memory.priorities.push({
-    text: line,
-    score: priorityData.score,
-    category: priorityData.category,
-    timestamp: new Date()
-      .toISOString()
-      .slice(0, 10)
-  });
-
-  if (memory.priorities.length > 50) {
-    memory.priorities =
-      memory.priorities.slice(-50);
-  }
+if (memory.priorities.length > 50) {
+  memory.priorities =
+    memory.priorities.slice(-50);
 }
 
 classifyIntent(userText);
 
       const directResponse =
-        getDirectResponse(memory, userText);
+  getDirectResponse(memory, userText);
 
-      let reply;
+let reply;
 
-      if (directResponse) {
-        reply = directResponse;
-      } else {
-        const relevantMemory =
-          getRelevantMemory(memory, userText);
+if (directResponse) {
+  reply = directResponse;
+} else {
+  const relevantMemory =
+    getRelevantMemory(memory, userText);
 
-        try {
-          reply = await askGemini(
-            env,
-            relevantMemory,
-            userText
-          );
-        } catch {
-          reply = getFallbackResponse(userText);
-        }
-      }
+  try {
+    reply = await askGemini(
+      env,
+      relevantMemory,
+      userText
+    );
+  } catch (err) {
+    console.error("Gemini Error:", err);
+    reply = getFallbackResponse(userText);
+  }
+}
 
       memory.shortTermMemory.push(
         `کاربر: ${userText}`

@@ -76,15 +76,21 @@ export default {
 
       const memory = await getMemory(env, chatId);
 
-      if (isMemoryDump(userText)) {
+      if (!userText) {
   await sendTelegram(
     env,
     chatId,
-    "پیام JSON/KV شناسایی شد و برای جلوگیری از خراب شدن حافظه نادیده گرفته شد."
+    "فعلاً فقط پیام متنی را پردازش می‌کنم."
   );
-
   return new Response("OK");
-      }
+}
+
+if (isMemoryDump(userText)) {
+  console.log("MEMORY DUMP BLOCKED");
+  return new Response("OK");
+}
+
+const memory = await getMemory(env, chatId);
       
       rememberName(memory, userText);
       rememberGoal(memory, userText);

@@ -10,53 +10,46 @@ export async function getMemory(env, chatId) {
     const oldFamily = parsed.profile?.family;
 
     return {
-      profile: {
-        name: parsed.profile?.name || null,
+    return {
+  profile: {
+    name: parsed.profile?.name || null,
 
-        family: Array.isArray(oldFamily)
-          ? {
-              wife: null,
-              husband: null,
-              daughter: null,
-              son: null
-            }
-          : {
-              wife: oldFamily?.wife || null,
-              husband: oldFamily?.husband || null,
-              daughter: oldFamily?.daughter || null,
-              son: oldFamily?.son || null
-            },
+    family: Array.isArray(oldFamily)
+      ? {
+          wife: null,
+          husband: null,
+          daughter: null,
+          son: null
+        }
+      : {
+          wife: oldFamily?.wife || null,
+          husband: oldFamily?.husband || null,
+          daughter: oldFamily?.daughter || null,
+          son: oldFamily?.son || null
+        },
 
-        preferences:
-          parsed.profile?.preferences || [],
+    preferences: parsed.profile?.preferences || [],
+    goals: parsed.profile?.goals || [],
+    projects: parsed.profile?.projects || []
+  },
 
-        goals:
-          parsed.profile?.goals || [],
+  entities: parsed.entities || {
+    people: [],
+    places: [],
+    projects: []
+  },
 
-        projects:
-          parsed.profile?.projects || []
-      },
+  shortTermMemory: parsed.shortTermMemory || [],
+  longTermMemory: parsed.longTermMemory || [],
+  relationships: parsed.relationships || [],
 
-      entities: {
-  people: [],
-  places: [],
- projects: []
-},
-
-      shortTermMemory:
-        parsed.shortTermMemory || [],
-
-      longTermMemory:
-        parsed.longTermMemory || [],
-      relationships: parsed.relationships || []
-        
-    dailyContext: {
-  date: null,
-  tasks: [],
-  events: [],
-  mood: null
-}
-    };
+  dailyContext: parsed.dailyContext || {
+    date: null,
+    tasks: [],
+    events: [],
+    mood: null
+  }
+};
   } catch {
     return createDefaultMemory();
   }
@@ -86,21 +79,22 @@ function createDefaultMemory() {
       projects: []
     },
 
-    entities: parsed.entities || {
-  people: [],
-  places: [],
-  projects: []
-},
-      
+    entities: {
+      people: [],
+      places: [],
+      projects: []
+    },
+
     shortTermMemory: [],
-    longTermMemory: []
-    relationships: []
-    dailyContext: parsed.dailyContext || {
-  date: null,
-  tasks: [],
-  events: [],
-  mood: null
-  }
+    longTermMemory: [],
+    relationships: [],
+
+    dailyContext: {
+      date: null,
+      tasks: [],
+      events: [],
+      mood: null
+    }
   };
 }
 

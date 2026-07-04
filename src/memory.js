@@ -55,10 +55,7 @@ export async function getMemory(env, chatId) {
 }
 
 export async function saveMemory(env, chatId, memory) {
-  await env.MEMORY.put(
-    chatId,
-    JSON.stringify(memory)
-  );
+  await env.MEMORY.put(chatId, JSON.stringify(memory));
 }
 
 function createDefaultMemory() {
@@ -106,12 +103,7 @@ function isValidName(name) {
     return false;
   }
 
-  const badWords = [
-    "چیه",
-    "چی",
-    "کیه",
-    "چیست"
-  ];
+  const badWords = ["چیه", "چی", "کیه", "چیست"];
 
   if (badWords.includes(cleaned)) {
     return false;
@@ -124,7 +116,7 @@ export function rememberName(memory, text) {
   const t = text.trim();
 
   const patterns = [
-    /^اسم من\s+(.+?)\s*(است|هست|ه)?$/i,
+    /^اسم من\s+(.+)$/i,
     /^من\s+(.+?)\s+هستم$/i
   ];
 
@@ -132,7 +124,12 @@ export function rememberName(memory, text) {
     const match = t.match(pattern);
 
     if (match) {
-      const name = match[1].trim();
+      let name = match[1].trim();
+
+      name = name
+        .replace(/(است|هست)$/,"")
+        .replace(/ه$/,"")
+        .trim();
 
       if (isValidName(name)) {
         memory.profile.name = name;
@@ -153,35 +150,28 @@ export function rememberFamily(memory, text) {
   }
 
   const t = text.trim();
-  let match;
 
-  match = t.match(/اسم دخترم\s+(.+?)\s*(است|هست|ه)?$/);
-  if (match) {
-    memory.profile.family.daughter = match[1].trim();
-    return;
-  }
+  const patterns = [
+    { key: "daughter", regex: /^اسم دخترم\s+(.+)$/i },
+    { key: "son", regex: /^اسم پسرم\s+(.+)$/i },
+    { key: "wife", regex: /^اسم همسرم\s+(.+)$/i },
+    { key: "wife", regex: /^اسم زنم\s+(.+)$/i },
+    { key: "husband", regex: /^اسم شوهرم\s+(.+)$/i }
+  ];
 
-  match = t.match(/اسم پسرم\s+(.+?)\s*(است|هست|ه)?$/);
-  if (match) {
-    memory.profile.family.son = match[1].trim();
-    return;
-  }
+  for (const item of patterns) {
+    const match = t.match(item.regex);
 
-  match = t.match(/اسم همسرم\s+(.+?)\s*(است|هست|ه)?$/);
-  if (match) {
-    memory.profile.family.wife = match[1].trim();
-    return;
-  }
+    if (match) {
+      let name = match[1].trim();
 
-  match = t.match(/اسم زنم\s+(.+?)\s*(است|هست|ه)?$/);
-  if (match) {
-    memory.profile.family.wife = match[1].trim();
-    return;
-  }
+      name = name
+        .replace(/(است|هست)$/,"")
+        .trim();
 
-  match = t.match(/اسم شوهرم\s+(.+?)\s*(است|هست|ه)?$/);
-  if (match) {
-    memory.profile.family.husband = match[1].trim();
+      memory.profile.family[item.key] = name;
+      return;
+    }
   }
 }
 
@@ -258,3 +248,34 @@ export function rememberGoal(memory, text) {
     }
   }
 }
+
+export function rememberRelationship(memory, text) {
+  if (!memory.relationships) {
+    memory.relationships = [];
+  }
+
+  const t = text.trim();
+
+  const motherMatch =
+    t.match(/^(.+?)\s+مادر\s+(.+?)\s+(است|هست)$/);
+
+  if (motherMatch) {
+    memory.relationships.push({
+      from: motherMatch[1].trim(),
+      relation: "mother_of",
+      to: motherMatch[2].trim()
+    });
+    return;
+  }
+
+  const fatherMatch =
+    t.match(/^(.+?)\s+پدر\s+(.+?)\s+(است|هست)$/);
+
+  if (fatherMatch) {
+    memory.relationships.push({
+      from: fatherMatch[1].trim(),
+      relation: "father_of",
+      to: fatherMatch[2].trim()
+    });
+  }
+    }

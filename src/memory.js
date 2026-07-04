@@ -37,6 +37,12 @@ export async function getMemory(env, chatId) {
           parsed.profile?.projects || []
       },
 
+      entities: {
+  people: [],
+  places: [],
+ projects: []
+},
+
       shortTermMemory:
         parsed.shortTermMemory || [],
 
@@ -72,6 +78,12 @@ function createDefaultMemory() {
       projects: []
     },
 
+    entities: parsed.entities || {
+  people: [],
+  places: [],
+  projects: []
+},
+    
     shortTermMemory: [],
     longTermMemory: []
   };

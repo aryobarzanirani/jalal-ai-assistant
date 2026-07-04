@@ -47,6 +47,30 @@ export function isMemoryDump(text) {
   return false;
 }
 
+function normalizeText(text) {
+  if (!text) return "";
+
+  return text
+    .trim()
+    .replace(/\s+/g, " ")
+    .replace(/[؟?!]/g, "");
+}
+
+function alreadyExists(list, text) {
+  const normalized = normalizeText(text);
+
+  return (list || []).some(item => {
+    if (typeof item === "string") {
+      return normalizeText(item) === normalized;
+    }
+
+    if (item?.text) {
+      return normalizeText(item.text) === normalized;
+    }
+
+    return false;
+  });
+}
 function sanitizeMemory(memory) {
   if (!memory) {
     return createDefaultMemory();
@@ -267,14 +291,14 @@ export function rememberPreference(memory, text) {
 
   for (const trigger of triggers) {
     if (text.includes(trigger)) {
-      memory.profile.preferences.push(text);
 
-      if (memory.profile.preferences.length > 20) {
-        memory.profile.preferences =
-          memory.profile.preferences.slice(-20);
-      }
-      return;
-    }
+  if (alreadyExists(memory.profile.preferences, text)) {
+    return;
+  }
+
+  memory.profile.preferences.push(text);
+  return;
+}
   }
 }
 
@@ -302,12 +326,21 @@ export function rememberGoal(memory, text) {
   ];
 
   for (const trigger of triggers) {
-    if (t.includes(trigger)) {
-      memory.profile.goals.push(t);
-      memory.longTermMemory.push(t);
+  if (t.includes(trigger)) {
+
+    if (alreadyExists(memory.profile.goals, t)) {
       return;
     }
+
+    memory.profile.goals.push(t);
+
+    if (!alreadyExists(memory.longTermMemory, t)) {
+      memory.longTermMemory.push(t);
+    }
+
+    return;
   }
+}
 }
 
 export function rememberRelationship(memory, text) {
@@ -319,22 +352,45 @@ export function rememberRelationship(memory, text) {
     t.match(/^(.+?)\s+مادر\s+(.+?)\s+(است|هست)$/);
 
   if (motherMatch) {
-    memory.relationships.push({
-      from: motherMatch[1].trim(),
-      relation: "mother_of",
-      to: motherMatch[2].trim()
-    });
+  const exists = memory.relationships.some(
+    rel =>
+      rel.from === motherMatch[1].trim() &&
+      rel.relation === "mother_of" &&
+      rel.to === motherMatch[2].trim()
+  );
+
+  if (exists) {
     return;
+  }
+
+  memory.relationships.push({
+    from: motherMatch[1].trim(),
+    relation: "mother_of",
+    to: motherMatch[2].trim()
+  });
+
+  return;
   }
 
   const fatherMatch =
     t.match(/^(.+?)\s+پدر\s+(.+?)\s+(است|هست)$/);
 
   if (fatherMatch) {
-    memory.relationships.push({
-      from: fatherMatch[1].trim(),
-      relation: "father_of",
-      to: fatherMatch[2].trim()
+  const exists = memory.relationships.some(
+    rel =>
+      rel.from === fatherMatch[1].trim() &&
+      rel.relation === "father_of" &&
+      rel.to === fatherMatch[2].trim()
+  );
+
+  if (exists) {
+    return;
+  }
+
+  memory.relationships.push({
+    from: fatherMatch[1].trim(),
+    relation: "father_of",
+    to: fatherMatch[2].trim()
     });
   }
 }
@@ -374,6 +430,9 @@ export function rememberSemantic(memory, text) {
 
   if (importance < 5) return;
 
+  if (alreadyExists(memory.semanticMemory, t)) {
+  return;
+  }
   memory.semanticMemory.push({
     text: t,
     category,

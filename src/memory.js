@@ -1,4 +1,29 @@
+function shouldSkipText(text, max = 1000) {
+  if (!text) return true;
+
+  const t = text.trim();
+
+  if (!t) return true;
+
+  if (t.length > max) return true;
+
+  if (
+    t.startsWith("{") ||
+    t.startsWith("[") ||
+    t.includes('"profile"') ||
+    t.includes('"shortTermMemory"')
+  ) {
+    return true;
+  }
+
+  return false;
+}
+
+    importance += 1;
+}
 export function rememberSemantic(memory, text) {
+  if (shouldSkipText(text, 1500)) return;
+
   if (!memory.semanticMemory) {
     memory.semanticMemory = [];
   }
@@ -11,8 +36,7 @@ export function rememberSemantic(memory, text) {
   if (
     t.includes("دخترم") ||
     t.includes("پسرم") ||
-    t.includes("همسرم") ||
-    t.includes("خانواده")
+    t.includes("همسرم")
   ) {
     category = "family";
     importance = 8;
@@ -23,36 +47,18 @@ export function rememberSemantic(memory, text) {
     t.includes("شیفت") ||
     t.includes("بیمارستان")
   ) {
-    category = "work";
-    importance = 7;
-  }
-
-  if (
-    t.includes("امروز") ||
-    t.includes("فردا") ||
-    t.includes("امشب") ||
-    t.includes("استراحت")
-  ) {
     category = "schedule";
-    importance = 7;
+    importance = 6;
   }
 
   if (
     t.includes("باید") ||
     t.includes("مهم")
   ) {
-    importance += 1;
+    importance += 2;
   }
 
-  if (importance < 5) {
-    return;
-  }
-
-  const exists = memory.semanticMemory.find(
-    item => item.text === t
-  );
-
-  if (exists) return;
+  if (importance < 5) return;
 
   memory.semanticMemory.push({
     text: t,
@@ -272,6 +278,8 @@ export function rememberFamily(memory, text) {
 }
 
 export function rememberPreference(memory, text) {
+  if (shouldSkipText(text, 500)) return;
+
   if (!memory.profile.preferences) {
     memory.profile.preferences = [];
   }
@@ -297,6 +305,8 @@ export function rememberPreference(memory, text) {
 }
 
 export function rememberGoal(memory, text) {
+  if (shouldSkipText(text, 500)) return;
+
   if (!memory.profile.goals) {
     memory.profile.goals = [];
   }
@@ -346,6 +356,8 @@ export function rememberGoal(memory, text) {
 }
 
 export function rememberRelationship(memory, text) {
+  if (shouldSkipText(text, 500)) return;
+
   if (!memory.relationships) {
     memory.relationships = [];
   }
@@ -356,23 +368,11 @@ export function rememberRelationship(memory, text) {
     t.match(/^(.+?)\s+مادر\s+(.+?)\s+(است|هست)$/);
 
   if (motherMatch) {
-    const relation = {
+    memory.relationships.push({
       from: motherMatch[1].trim(),
       relation: "mother_of",
       to: motherMatch[2].trim()
-    };
-
-    const exists = memory.relationships.find(
-      item =>
-        item.from === relation.from &&
-        item.to === relation.to &&
-        item.relation === relation.relation
-    );
-
-    if (!exists) {
-      memory.relationships.push(relation);
-    }
-
+    });
     return;
   }
 
@@ -380,21 +380,10 @@ export function rememberRelationship(memory, text) {
     t.match(/^(.+?)\s+پدر\s+(.+?)\s+(است|هست)$/);
 
   if (fatherMatch) {
-    const relation = {
+    memory.relationships.push({
       from: fatherMatch[1].trim(),
       relation: "father_of",
       to: fatherMatch[2].trim()
-    };
-
-    const exists = memory.relationships.find(
-      item =>
-        item.from === relation.from &&
-        item.to === relation.to &&
-        item.relation === relation.relation
-    );
-
-    if (!exists) {
-      memory.relationships.push(relation);
-    }
+    });
   }
 }

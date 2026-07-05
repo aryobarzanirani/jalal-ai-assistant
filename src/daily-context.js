@@ -1,3 +1,4 @@
+import { extractDate } from "./date-parser.js";
 import { hasTask } from "./task-utils.js";
 export function updateDailyContext(memory, userText) {
   if (
@@ -42,7 +43,10 @@ export function updateDailyContext(memory, userText) {
   for (const trigger of taskTriggers) {
     if (text.includes(trigger)) {
       if (!hasTask(memory.dailyContext.tasks, text)) {
-  memory.dailyContext.tasks.push(text);
+  memory.dailyContext.tasks.push({
+  text,
+  date: extractDate(text)
+});
 }
       break;
     }

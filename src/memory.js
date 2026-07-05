@@ -309,26 +309,55 @@ export function rememberFamily(memory, text) {
   const t = text.trim();
 
   const patterns = [
-    { key: "daughter", regex: /^اسم دخترم\s+(.+)$/i },
-    { key: "son", regex: /^اسم پسرم\s+(.+)$/i },
-    { key: "wife", regex: /^اسم همسرم\s+(.+)$/i },
-    { key: "wife", regex: /^اسم زنم\s+(.+)$/i },
-    { key: "husband", regex: /^اسم شوهرم\s+(.+)$/i }
-  ];
-
-  for (const item of patterns) {
-    const match = t.match(item.regex);
-
-    if (match) {
-      let name = match[1].trim();
-      name = name.replace(/(است|هست)$/, "").trim();
-      if (!name) return;
-      memory.profile.family[item.key] = name;
-      return;
-    }
+  {
+    key: "daughter",
+    regex: /^اسم دخترم\s+(.+?)\s*(است|هست)?$/i
+  },
+  {
+    key: "son",
+    regex: /^اسم پسرم\s+(.+?)\s*(است|هست)?$/i
+  },
+  {
+    key: "wife",
+    regex: /^اسم همسرم\s+(.+?)\s*(است|هست)?$/i
+  },
+  {
+    key: "wife",
+    regex: /^اسم زنم\s+(.+?)\s*(است|هست)?$/i
+  },
+  {
+    key: "husband",
+    regex: /^اسم شوهرم\s+(.+?)\s*(است|هست)?$/i
   }
-}
+];
 
+const badNames = [
+  "چیه",
+  "چیست",
+  "؟",
+  "?",
+  "کیه",
+  "کیست"
+];
+
+for (const item of patterns) {
+  const match = t.match(item.regex);
+
+  if (!match) continue;
+
+  let name = match[1]
+    .trim()
+    .replace(/(است|هست)$/i, "")
+    .trim();
+
+  if (badNames.includes(name)) {
+    return;
+  }
+
+  memory.profile.family[item.key] = name;
+  return;
+}
+}
 export function rememberPreference(memory, text) {
   if (shouldSkipText(text, 500)) return;
   if (isQuestion(text)) {

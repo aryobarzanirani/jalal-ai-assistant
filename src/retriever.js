@@ -1,14 +1,19 @@
+import { similarity } from "./search-utils.js";
+
 export function getRelevantMemory(memory, userText) {
+
   const text = userText.trim();
 
   const relevant = {
     profile: {},
     shortTermMemory:
       memory.shortTermMemory?.slice(-8) || [],
-    longTermMemory: []
+    longTermMemory: [],
+    semanticMemory: [],
+    priorities: []
   };
 
-  // Family related
+  // Family
   if (
     text.includes("دختر") ||
     text.includes("پسر") ||
@@ -19,7 +24,7 @@ export function getRelevantMemory(memory, userText) {
       memory.profile?.family || {};
   }
 
-  // Preference related
+  // Preferences
   if (
     text.includes("علاقه") ||
     text.includes("دوست دارم")
@@ -28,7 +33,7 @@ export function getRelevantMemory(memory, userText) {
       memory.profile?.preferences || [];
   }
 
-  // Goal related
+  // Goals
   if (
     text.includes("پروژه") ||
     text.includes("هدف") ||
@@ -38,13 +43,45 @@ export function getRelevantMemory(memory, userText) {
       memory.profile?.goals || [];
   }
 
-  // Name related
-  if (
-    text.includes("اسم")
-  ) {
+  // Name
+  if (text.includes("اسم")) {
     relevant.profile.name =
       memory.profile?.name || null;
   }
 
+  // Semantic Memory
+  for (const item of memory.semanticMemory || []) {
+
+    if (
+      similarity(item.text, text) >= 1
+    ) {
+      relevant.semanticMemory.push(item);
+    }
+
+  }
+
+  // Long Term Memory
+  for (const item of memory.longTermMemory || []) {
+
+    if (
+      similarity(item, text) >= 1
+    ) {
+      relevant.longTermMemory.push(item);
+    }
+
+  }
+
+  // Priorities
+  for (const item of memory.priorities || []) {
+
+    if (
+      similarity(item.text, text) >= 1
+    ) {
+      relevant.priorities.push(item);
+    }
+
+  }
+
   return relevant;
+
 }

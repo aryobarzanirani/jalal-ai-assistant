@@ -1,3 +1,4 @@
+import { completeLastTask } from "./task-manager.js";
 import { splitIntent } from "./intent-splitter.js";
 import { splitSentences } from "./splitter.js";
 import { normalizeInput } from "./normalize.js";
@@ -142,11 +143,33 @@ classifyIntent(userText);
       const directResponse =
   getDirectResponse(memory, normalizedText);
 
-let reply;
+let reply = null;
 
-if (directResponse) {
+// Task Completion
+if (
+  normalizedText.includes("انجام شد") ||
+  normalizedText.includes("انجامش دادم") ||
+  normalizedText.includes("تموم شد") ||
+  normalizedText.includes("حل شد")
+) {
+  const task = completeLastTask(memory);
+
+  if (task) {
+    reply =
+      `عالی، مورد «${task.text}» انجام‌شده ثبت شد.`;
+  } else {
+    reply =
+      "کاری برای تکمیل پیدا نکردم.";
+  }
+}
+
+// Router
+if (!reply && directResponse) {
   reply = directResponse;
-} else {
+}
+
+// Gemini
+if (!reply) {
   const relevantMemory =
     getRelevantMemory(memory, normalizedText);
 
@@ -158,10 +181,10 @@ if (directResponse) {
     );
   } catch (err) {
     console.error("Gemini Error:", err);
-    reply = getFallbackResponse(userText);
+    reply =
+      getFallbackResponse(normalizedText);
   }
 }
-
       memory.shortTermMemory.push(
         `کاربر: ${normalizedText}`
       );

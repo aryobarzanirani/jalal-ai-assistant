@@ -73,8 +73,8 @@ export default {
         );
         return new Response("OK");
       }
-
 const lines = userText
+  .replace(/\r/g, "")
   .split("\n")
   .map(x => x.trim())
   .filter(Boolean);

@@ -40,6 +40,14 @@ function alreadyExists(list, text) {
   });
 }
 
+function isValidName(name) {
+  if (!name) return false;
+  const cleaned = name.trim();
+  if (cleaned.length < 2 || cleaned.length > 25) return false;
+  const badWords = ["چیه", "چی", "کیه", "چیست"];
+  return !badWords.includes(cleaned);
+}
+
 function sanitizeMemory(memory) {
   if (!memory) return createDefaultMemory();
 
@@ -55,7 +63,6 @@ function sanitizeMemory(memory) {
   memory.longTermMemory ??= [];
   memory.entities ??= { people: [], places: [], projects: [] };
 
-  // پاکسازی dump
   memory.shortTermMemory = (memory.shortTermMemory || []).filter(item => !isMemoryDump(item));
   memory.semanticMemory = (memory.semanticMemory || []).filter(item => !isMemoryDump(item?.text || ""));
   memory.longTermMemory = (memory.longTermMemory || []).filter(item => !isMemoryDump(item));
@@ -72,7 +79,6 @@ export async function getMemory(env, chatId) {
 
   try {
     const parsed = JSON.parse(data);
-    // ساختار حافظه (از کد قبلی‌ات)
     const memory = {
       profile: parsed.profile || { name: null, family: { wife: null, husband: null, daughter: null, son: null }, preferences: [], goals: [], projects: [] },
       entities: parsed.entities || { people: [], places: [], projects: [] },
@@ -83,7 +89,6 @@ export async function getMemory(env, chatId) {
       semanticMemory: parsed.semanticMemory || [],
       dailyContext: parsed.dailyContext || { date: null, tasks: [], events: [], mood: null }
     };
-
     return sanitizeMemory(memory);
   } catch (e) {
     console.error("Memory Parse Error", e);
@@ -118,9 +123,10 @@ function createDefaultMemory() {
   };
 }
 
+// ==================== Remember Functions ====================
+
 export function rememberName(memory, text) {
   if (shouldSkipText(text, 200)) return;
-
   const t = text.trim();
 
   const patterns = [
@@ -130,14 +136,9 @@ export function rememberName(memory, text) {
 
   for (const pattern of patterns) {
     const match = t.match(pattern);
-
     if (match) {
-      let name = match[1].trim();
-
-      name = name.replace(/(است|هست)$/, "").trim();
-if (!name) return;
-      
-      if (isValidName(name)) {
+      let name = match[1].trim().replace(/(است|هست)$/, "").trim();
+      if (name && isValidName(name)) {
         memory.profile.name = name;
         return;
       }
@@ -147,7 +148,6 @@ if (!name) return;
 
 export function rememberFamily(memory, text) {
   if (shouldSkipText(text, 200)) return;
-
   const t = text.trim();
 
   const patterns = [
@@ -160,12 +160,9 @@ export function rememberFamily(memory, text) {
 
   for (const item of patterns) {
     const match = t.match(item.regex);
-
     if (match) {
-      let name = match[1].trim();
-      name = name.replace(/(است|هست)$/, "").trim();
-      if (!name) return;
-      memory.profile.family[item.key] = name;
+      let name = match[1].trim().replace(/(است|هست)$/, "").trim();
+      if (name) memory.profile.family[item.key] = name;
       return;
     }
   }
@@ -173,164 +170,93 @@ export function rememberFamily(memory, text) {
 
 export function rememberPreference(memory, text) {
   if (shouldSkipText(text, 500)) return;
-
   const triggers = ["دوست دارم", "علاقه دارم", "علاقه‌مندم"];
 
   for (const trigger of triggers) {
     if (text.includes(trigger)) {
-
-  if (alreadyExists(memory.profile.preferences, text)) {
-    return;
-  }
-
-  memory.profile.preferences.push(text);
-  return;
-}
+      if (!alreadyExists(memory.profile.preferences, text)) {
+        memory.profile.preferences.push(text);
+      }
+      return;
+    }
   }
 }
 
 export function rememberGoal(memory, text) {
   if (shouldSkipText(text, 500)) return;
-
   const t = text.trim();
 
-  if (
-    t.includes("چیه") ||
-    t.includes("چیست") ||
-    t.includes("?") ||
-    t.includes("؟")
-  ) {
-    return;
-  }
+  if (/چیه|چیست|\?|؟/.test(t)) return;
 
-  const triggers = [
-    "هدف من",
-    "دارم روی",
-    "میخوام",
-    "می‌خوام",
-    "در حال ساخت",
-    "در حال توسعه"
-  ];
+  const triggers = ["هدف من", "دارم روی", "میخوام", "می‌خوام", "در حال ساخت", "در حال توسعه"];
 
   for (const trigger of triggers) {
-  if (t.includes(trigger)) {
-
-    if (alreadyExists(memory.profile.goals, t)) {
+    if (t.includes(trigger)) {
+      if (!alreadyExists(memory.profile.goals, t)) {
+        memory.profile.goals.push(t);
+        if (!alreadyExists(memory.longTermMemory, t)) {
+          memory.longTermMemory.push(t);
+        }
+      }
       return;
     }
-
-    memory.profile.goals.push(t);
-
-    if (!alreadyExists(memory.longTermMemory, t)) {
-      memory.longTermMemory.push(t);
-    }
-
-    return;
   }
-}
 }
 
 export function rememberRelationship(memory, text) {
   if (shouldSkipText(text, 500)) return;
-
   const t = text.trim();
 
-  const motherMatch =
-    t.match(/^(.+?)\s+مادر\s+(.+?)\s+(است|هست)$/);
-
+  const motherMatch = t.match(/^(.+?)\s+مادر\s+(.+?)\s+(است|هست)$/);
   if (motherMatch) {
-  const exists = memory.relationships.some(
-    rel =>
-      rel.from === motherMatch[1].trim() &&
-      rel.relation === "mother_of" &&
-      rel.to === motherMatch[2].trim()
-  );
-
-  if (exists) {
+    const exists = memory.relationships.some(rel => 
+      rel.from === motherMatch[1].trim() && rel.relation === "mother_of" && rel.to === motherMatch[2].trim()
+    );
+    if (!exists) {
+      memory.relationships.push({ from: motherMatch[1].trim(), relation: "mother_of", to: motherMatch[2].trim() });
+    }
     return;
   }
 
-  memory.relationships.push({
-    from: motherMatch[1].trim(),
-    relation: "mother_of",
-    to: motherMatch[2].trim()
-  });
-
-  return;
-  }
-
-  const fatherMatch =
-    t.match(/^(.+?)\s+پدر\s+(.+?)\s+(است|هست)$/);
-
+  const fatherMatch = t.match(/^(.+?)\s+پدر\s+(.+?)\s+(است|هست)$/);
   if (fatherMatch) {
-  const exists = memory.relationships.some(
-    rel =>
-      rel.from === fatherMatch[1].trim() &&
-      rel.relation === "father_of" &&
-      rel.to === fatherMatch[2].trim()
-  );
-
-  if (exists) {
-    return;
-  }
-
-  memory.relationships.push({
-    from: fatherMatch[1].trim(),
-    relation: "father_of",
-    to: fatherMatch[2].trim()
-    });
+    const exists = memory.relationships.some(rel => 
+      rel.from === fatherMatch[1].trim() && rel.relation === "father_of" && rel.to === fatherMatch[2].trim()
+    );
+    if (!exists) {
+      memory.relationships.push({ from: fatherMatch[1].trim(), relation: "father_of", to: fatherMatch[2].trim() });
+    }
   }
 }
 
 export function rememberSemantic(memory, text) {
   if (shouldSkipText(text, 1500)) return;
-
   const t = text.trim();
 
   let category = "general";
   let importance = 3;
 
-  if (
-    t.includes("دخترم") ||
-    t.includes("پسرم") ||
-    t.includes("همسرم")
-  ) {
+  if (t.includes("دخترم") || t.includes("پسرم") || t.includes("همسرم")) {
     category = "family";
     importance = 8;
   }
-
-  if (
-    t.includes("کار") ||
-    t.includes("شیفت") ||
-    t.includes("بیمارستان")
-  ) {
+  if (t.includes("کار") || t.includes("شیفت") || t.includes("بیمارستان")) {
     category = "schedule";
     importance = 6;
   }
-
-  if (
-    t.includes("باید") ||
-    t.includes("مهم")
-  ) {
-    importance += 2;
-  }
+  if (t.includes("باید") || t.includes("مهم")) importance += 2;
 
   if (importance < 5) return;
+  if (alreadyExists(memory.semanticMemory, t)) return;
 
-  if (alreadyExists(memory.semanticMemory, t)) {
-  return;
-  }
   memory.semanticMemory.push({
     text: t,
     category,
     importance,
-    timestamp: new Date()
-      .toISOString()
-      .slice(0, 10)
+    timestamp: new Date().toISOString().slice(0, 10)
   });
 
   if (memory.semanticMemory.length > 100) {
-    memory.semanticMemory =
-      memory.semanticMemory.slice(-100);
+    memory.semanticMemory = memory.semanticMemory.slice(-100);
   }
 }

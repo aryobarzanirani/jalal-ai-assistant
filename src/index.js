@@ -1,3 +1,4 @@
+import { normalizeInput } from "./normalize.js";
 import { calculatePriority } from "./priority-engine.js";
 import { updateDailyContext } from "./daily-context.js";
 import {
@@ -42,14 +43,13 @@ export default {
     try {
       const update = await request.json();
       const message = update?.message;
-
       if (!message) {
         return new Response("OK");
       }
 
       chatId = message?.chat?.id?.toString();
       const userText = message?.text;
-
+      const normalizedText = normalizeInput(userText);
       if (!chatId) {
         return new Response("OK");
       }
@@ -73,13 +73,12 @@ export default {
         );
         return new Response("OK");
       }
-const lines = userText
-  .replace(/\r/g, "")
+const lines = normalizedText
   .split("\n")
   .map(x => x.trim())
   .filter(Boolean);
       
-if (isMemoryDump(userText)) {
+if (isMemoryDump(normalizedText)) {
   console.log("MEMORY DUMP BLOCKED");
   return new Response("OK");
 }
@@ -126,7 +125,7 @@ if (memory.priorities.length > 50) {
 classifyIntent(userText);
 
       const directResponse =
-  getDirectResponse(memory, userText);
+  getDirectResponse(memory, normalizedText);
 
 let reply;
 
@@ -134,13 +133,13 @@ if (directResponse) {
   reply = directResponse;
 } else {
   const relevantMemory =
-    getRelevantMemory(memory, userText);
+    getRelevantMemory(memory, normalizedText);
 
   try {
     reply = await askGemini(
       env,
       relevantMemory,
-      userText
+      normalizedText
     );
   } catch (err) {
     console.error("Gemini Error:", err);
@@ -149,7 +148,7 @@ if (directResponse) {
 }
 
       memory.shortTermMemory.push(
-        `کاربر: ${userText}`
+        `کاربر: ${normalizedText}`
       );
 
       memory.shortTermMemory.push(

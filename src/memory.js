@@ -277,6 +277,9 @@ export function rememberName(memory, text) {
   if (isQuestion(text)) {
   return;
 }
+  if (isQuestion(name)) {
+  return;
+  }
   const t = text.trim();
 
   const patterns = [

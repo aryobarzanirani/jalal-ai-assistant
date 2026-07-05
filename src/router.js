@@ -52,28 +52,39 @@ export function getDirectResponse(memory, userText) {
   }
 
   // Daughter
-  if (
-    text.includes("اسم دخترم") &&
-    memory?.profile?.family?.daughter
-  ) {
-    return `متوجه شدم، اسم دختر شما ${memory.profile.family.daughter} است.`;
-  }
-
-  // Wife
-  if (
-    text.includes("اسم همسرم چیه") ||
-    text.includes("اسم همسرم چیست") ||
-    text.includes("اسم زنم چیه")
-  ) {
-    const wife = memory?.profile?.family?.wife;
-
-    if (wife) {
-      return `نام همسر شما ${wife} است.`;
+    if (
+  (
+    text.includes("اسم دخترم چیه") ||
+    text.includes("اسم دخترم چیست") ||
+    text === "اسم دخترم؟" ||
+    text === "اسم دخترم"
+  ) &&
+  memory?.profile?.family?.daughter
+) {
+  return `نام دختر شما ${memory.profile.family.daughter} است.`;
     }
+  {
+  return "نام دختر شما در حافظه ثبت نشده است.";
+}
+// Wife
+if (
+  (text.includes("اسم همسرم") || text.includes("اسم زنم")) &&
+  (
+    text.includes("چیه") ||
+    text.includes("چیست") ||
+    text.includes("؟") ||
+    text === "اسم همسرم" ||
+    text === "اسم زنم"
+  )
+) {
+  const wife = memory?.profile?.family?.wife;
 
-    return "نام همسر شما در حافظه ثبت نشده است.";
+  if (wife) {
+    return `نام همسر شما ${wife} است.`;
   }
 
+  return "نام همسر شما در حافظه ثبت نشده است.";
+}
   // Husband
   if (
     text.includes("اسم شوهرم چیه") ||

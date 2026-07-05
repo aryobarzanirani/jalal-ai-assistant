@@ -141,8 +141,20 @@ function createDefaultMemory() {
     dailyContext: { date: null, tasks: [], events: [], mood: null }
   };
 
-
-export { /* export تمام remember functions */ };
+  // Export تمام توابع
+export {
+  getMemory,
+  saveMemory,
+  saveWithVector,
+  retrieveRelevantMemory,
+  isMemoryDump,
+  rememberName,
+  rememberFamily,
+  rememberGoal,
+  rememberPreference,
+  rememberRelationship,
+  rememberSemantic
+};
 export function rememberName(memory, text) {
   if (shouldSkipText(text, 200)) return;
 

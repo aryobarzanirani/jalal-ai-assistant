@@ -1,3 +1,4 @@
+import { splitIntent } from "./intent-splitter.js";
 import { splitSentences } from "./splitter.js";
 import { normalizeInput } from "./normalize.js";
 import { calculatePriority } from "./priority-engine.js";
@@ -83,36 +84,45 @@ if (isMemoryDump(normalizedText)) {
 
 const memory = await getMemory(env, chatId);
       
-      for (const line of lines) {
-  rememberName(memory, line);
-  rememberGoal(memory, line);
-  rememberFamily(memory, line);
-  rememberRelationship(memory, line);
-  rememberPreference(memory, line);
-  rememberSemantic(memory, line);
-
-  extractEntities(memory, line);
-  extractRelationships(memory, line);
-  updateDailyContext(memory, line);
-}
 for (const line of lines) {
-  const priorityData =
-    calculatePriority(memory, line);
 
-  if (priorityData.score >= 5) {
-    if (!memory.priorities) {
-      memory.priorities = [];
+  const intents = splitIntent(line);
+
+  for (const intent of intents) {
+
+    rememberName(memory, intent);
+    rememberGoal(memory, intent);
+    rememberFamily(memory, intent);
+    rememberRelationship(memory, intent);
+    rememberPreference(memory, intent);
+    rememberSemantic(memory, intent);
+
+    extractEntities(memory, intent);
+    extractRelationships(memory, intent);
+    updateDailyContext(memory, intent);
+
+    const priorityData =
+      calculatePriority(memory, intent);
+
+    if (priorityData.score >= 5) {
+
+      if (!memory.priorities) {
+        memory.priorities = [];
+      }
+
+      memory.priorities.push({
+        text: intent,
+        score: priorityData.score,
+        category: priorityData.category,
+        timestamp: new Date()
+          .toISOString()
+          .slice(0, 10)
+      });
+
     }
 
-    memory.priorities.push({
-      text: line,
-      score: priorityData.score,
-      category: priorityData.category,
-      timestamp: new Date()
-        .toISOString()
-        .slice(0, 10)
-    });
   }
+
 }
 
 if (memory.priorities.length > 50) {

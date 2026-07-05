@@ -1,5 +1,5 @@
 function normalizeTask(text) {
-  return text
+  return String(text)
     .trim()
     .replace(/\s+/g, " ")
     .replace(/[؟?!]/g, "");
@@ -8,7 +8,15 @@ function normalizeTask(text) {
 export function hasTask(tasks, text) {
   const target = normalizeTask(text);
 
-  return (tasks || []).some(
-    task => normalizeTask(task) === target
-  );
+  return (tasks || []).some(task => {
+    if (typeof task === "string") {
+      return normalizeTask(task) === target;
+    }
+
+    if (task?.text) {
+      return normalizeTask(task.text) === target;
+    }
+
+    return false;
+  });
 }

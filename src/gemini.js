@@ -1,105 +1,37 @@
+// src/gemini.js
 import { SYSTEM_PROMPT } from "./prompt.js";
-import { getGeminiKeys } from "./gemini-keys.js";
 
-export async function askGemini(env, memory, userText) {
-  const profile = memory.profile || {};
-  const shortTermMemory = memory.shortTermMemory || [];
-  const longTermMemory = memory.longTermMemory || [];
+export async function askGemini(env, relevantContext, userText, modelName = null) {
+  const memory = relevantContext ? { /* اگر لازم بود */ } : {};
 
-  const profileBlock = `
-=== اطلاعات قطعی کاربر ===
-نام: ${profile.name || "ثبت نشده"}
+  // ساخت پرامپت
+  const prompt = buildPrompt(relevantContext, userText);
 
-خانواده:
-${
-  profile.family?.length
-    ? profile.family.join("\n")
-    : "ثبت نشده"
-}
+  // اگر modelName پاس نشده، از Flash استفاده کن (پیش‌فرض)
+  const model = modelName || "gemini-2.5-flash-exp";
 
-علایق:
-${
-  profile.preferences?.length
-    ? profile.preferences.join("\n")
-    : "ثبت نشده"
-}
-
-اهداف:
-${
-  profile.goals?.length
-    ? profile.goals.join("\n")
-    : "ثبت نشده"
-}
-`;
-
-  const longTermBlock = `
-=== حافظه بلندمدت ===
-${
-  longTermMemory.length
-    ? longTermMemory.slice(-15).join("\n")
-    : "موردی ثبت نشده"
-}
-`;
-
-  const shortTermBlock = `
-=== گفتگوهای اخیر ===
-${
-  shortTermMemory.length
-    ? shortTermMemory.slice(-12).join("\n")
-    : "گفتگویی ثبت نشده"
-}
-`;
-
-  const prompt = `
-${SYSTEM_PROMPT}
-
-${profileBlock}
-
-${longTermBlock}
-
-${shortTermBlock}
-
-=== پیام جدید کاربر ===
-${userText}
-
-قوانین مهم:
-- از اطلاعات حافظه استفاده کن.
-- تناقض نساز.
-- اگر اطلاعاتی در حافظه موجود نیست، صادقانه بگو.
-- اگر نام کاربر ثبت شده، در مواقع مناسب استفاده کن.
-
-پاسخ جلال دوم:
-`;
-
-  const apiKeys = getGeminiKeys(env);
+  const apiKeys = getGeminiKeys(env); // فرض بر این است که این تابع وجود دارد
 
   if (!apiKeys.length) {
-    return "هیچ Gemini API Key تنظیم نشده است.";
+    return "هیچ کلید API برای Gemini تنظیم نشده است.";
   }
 
   for (const apiKey of apiKeys) {
     try {
       const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
+        `https://generativelanguage.googleapis.com/v1beta/models/\( {model}:generateContent?key= \){apiKey}`,
         {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            contents: [
-              {
-                role: "user",
-                parts: [
-                  {
-                    text: prompt
-                  }
-                ]
-              }
-            ],
+            contents: [{
+              role: "user",
+              parts: [{ text: prompt }]
+            }],
             generationConfig: {
-              temperature: 0.7,
-              maxOutputTokens: 500
+              temperature: model.includes("flash") ? 0.8 : 0.6,
+              maxOutputTokens: model.includes("pro") ? 8192 : 4096,
+              topP: 0.95,
             }
           })
         }
@@ -108,38 +40,53 @@ ${userText}
       const data = await response.json();
 
       if (!response.ok) {
-        const errorMessage =
-          data?.error?.message || "";
+        console.error(`Gemini ${model} Error:`, data);
 
-        console.error(
-          "Gemini Error:",
-          JSON.stringify(data)
-        );
-
-        const quotaExceeded =
-          response.status === 429 ||
-          errorMessage.includes("quota") ||
-          errorMessage.includes("Quota");
-
-        if (quotaExceeded) {
-          continue;
+        if (response.status === 429 || 
+            (data?.error?.message || "").toLowerCase().includes("quota")) {
+          continue; // امتحان کلید بعدی
         }
 
-        return "در ارتباط با مدل هوش مصنوعی خطایی رخ داد.";
+        return "در حال حاضر مدل هوش مصنوعی شلوغ است. کمی بعد دوباره امتحان کن.";
       }
 
-      return (
-        data?.candidates?.[0]?.content?.parts?.[0]?.text ||
-        "پاسخی دریافت نشد."
-      );
+      const reply = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+      return reply || "پاسخی دریافت نشد.";
 
     } catch (err) {
-      console.error(
-        "Gemini Fetch Error:",
-        err
-      );
+      console.error(`Gemini Fetch Error (${model}):`, err);
     }
   }
 
-  return "ظرفیت تمام API Key های Gemini تکمیل شده است.";
+  return "تمام کلیدهای Gemini در حال حاضر در دسترس نیستند. لطفاً بعداً امتحان کنید.";
+}
+
+/** ساخت پرامپت تمیز و مرتب */
+function buildPrompt(relevantContext, userText) {
+  return `
+${SYSTEM_PROMPT}
+
+=== اطلاعات مرتبط از حافظه ===
+${relevantContext || "هیچ اطلاعات خاصی از قبل ثبت نشده."}
+
+=== پیام فعلی کاربر ===
+${userText}
+
+قوانین پاسخ‌دهی:
+- همیشه به فارسی پاسخ بده.
+- از اطلاعات حافظه استفاده کن اما اگر مطمئن نیستی، حدس نزن.
+- پاسخ را طبیعی، دوستانه و مفید بده.
+- اگر نیاز به اطلاعات بیشتر داری، مستقیم بپرس.
+
+پاسخ جلال دوم:
+`;
+}
+
+// تابع کمکی (اگر قبلاً داشتی نگه دار)
+function getGeminiKeys(env) {
+  const keys = [];
+  if (env.GEMINI_API_KEY) keys.push(env.GEMINI_API_KEY);
+  if (env.GEMINI_API_KEY_2) keys.push(env.GEMINI_API_KEY_2);
+  if (env.GEMINI_API_KEY_3) keys.push(env.GEMINI_API_KEY_3);
+  return keys;
 }

@@ -1,3 +1,6 @@
+import {
+  resolveLastTask
+} from "./context-resolver.js";
 import { completeLastTask } from "./task-manager.js";
 import { splitIntent } from "./intent-splitter.js";
 import { splitSentences } from "./splitter.js";
@@ -168,6 +171,28 @@ if (!reply && directResponse) {
   reply = directResponse;
 }
 
+      if (
+  !reply &&
+  (
+    normalizedText.includes("همون") ||
+    normalizedText.includes("همان") ||
+    normalizedText.includes("اون") ||
+    normalizedText.includes("آن")
+  )
+) {
+
+  const task =
+    resolveLastTask(memory);
+
+  if (task) {
+
+    reply =
+      `منظورت احتمالاً «${task.text}» است.`;
+
+  }
+
+      }
+      
 // Gemini
 if (!reply) {
   const relevantMemory =

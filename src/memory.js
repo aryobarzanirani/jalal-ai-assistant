@@ -1,81 +1,5 @@
-// src/memory.js
-import { getEmbedding, storeVector, semanticSearch } from './vector.js';
-import { cleanText } from './utils.js';
 
-function shouldSkipText(text, max = 1000) {
-  if (!text) return true;
-  const t = cleanText(text);
-  if (!t || t.length > max) return true;
-  if (isMemoryDump(t)) return true;
-  return false;
-}
-
-export function isMemoryDump(text) {
-  if (!text) return false;
-  const t = cleanText(text);
-
-  const dumpMarkers = [
-    '"profile"', '"shortTermMemory"', '"semanticMemory"',
-    '"dailyContext"', '"relationships"', '"longTermMemory"'
-  ];
-
-  for (const marker of dumpMarkers) {
-    if (t.includes(marker)) return true;
-  }
-
-  if (t.length > 80 && t.includes("{") && t.includes("}") && t.includes('":')) {
-    return true;
-  }
-  return false;
-}
-
-function normalizeText(text) {
-  if (!text) return "";
-  return cleanText(text)
-    .replace(/\s+/g, " ")
-    .replace(/[؟?!]/g, "");
-}
-
-function alreadyExists(list, text) {
-  const normalized = normalizeText(text);
-  return (list || []).some(item => {
-    if (typeof item === "string") return normalizeText(item) === normalized;
-    if (item?.text) return normalizeText(item.text) === normalized;
-    return false;
-  });
-}
-
-function sanitizeMemory(memory) {
-  if (!memory) return createDefaultMemory();
-
-  memory.profile ??= {};
-  memory.profile.preferences ??= [];
-  memory.profile.goals ??= [];
-  memory.profile.projects ??= [];
-
-  memory.dailyContext ??= { date: null, tasks: [], events: [], mood: null };
-  memory.relationships ??= [];
-  memory.semanticMemory ??= [];
-  memory.shortTermMemory ??= [];
-  memory.longTermMemory ??= [];
-  memory.entities ??= { people: [], places: [], projects: [] };
-
-  // پاکسازی
-  memory.shortTermMemory = (memory.shortTermMemory || []).filter(item => !isMemoryDump(item));
-  memory.semanticMemory = (memory.semanticMemory || []).filter(item => !isMemoryDump(item?.text || ""));
-  memory.longTermMemory = (memory.longTermMemory || []).filter(item => !isMemoryDump(item));
   
-  memory.profile.preferences = (memory.profile.preferences || []).filter(item => !isMemoryDump(item));
-  memory.profile.goals = (memory.profile.goals || []).filter(item => !isMemoryDump(item));
-
-  if (memory.dailyContext.tasks) {
-    memory.dailyContext.tasks = memory.dailyContext.tasks.filter(item => !isMemoryDump(item));
-  }
-  if (memory.dailyContext.events) {
-    memory.dailyContext.events = memory.dailyContext.events.filter(item => !isMemoryDump(item));
-  }
-
-  return memory;
 }
 
 export async function getMemory(env, chatId) {
@@ -139,22 +63,125 @@ function createDefaultMemory() {
     priorities: [],
     semanticMemory: [],
     dailyContext: { date: null, tasks: [], events: [], mood: null }
-  };
+// src/memory.js
+import { getEmbedding, storeVector, semanticSearch } from './vector.js';
+import { cleanText } from './utils.js';
 
-  // Export تمام توابع
-export {
-  getMemory,
-  saveMemory,
-  saveWithVector,
-  retrieveRelevantMemory,
-  isMemoryDump,
-  rememberName,
-  rememberFamily,
-  rememberGoal,
-  rememberPreference,
-  rememberRelationship,
-  rememberSemantic
-};
+function shouldSkipText(text, max = 1000) {
+  if (!text) return true;
+  const t = cleanText(text);
+  if (!t || t.length > max) return true;
+  if (isMemoryDump(t)) return true;
+  return false;
+}
+
+export function isMemoryDump(text) {
+  if (!text) return false;
+  const t = cleanText(text);
+
+  const dumpMarkers = ['"profile"', '"shortTermMemory"', '"semanticMemory"', '"dailyContext"', '"relationships"', '"longTermMemory"'];
+
+  for (const marker of dumpMarkers) {
+    if (t.includes(marker)) return true;
+  }
+
+  if (t.length > 80 && t.includes("{") && t.includes("}") && t.includes('":')) {
+    return true;
+  }
+  return false;
+}
+
+function normalizeText(text) {
+  if (!text) return "";
+  return cleanText(text).replace(/\s+/g, " ").replace(/[؟?!]/g, "");
+}
+
+function alreadyExists(list, text) {
+  const normalized = normalizeText(text);
+  return (list || []).some(item => {
+    if (typeof item === "string") return normalizeText(item) === normalized;
+    if (item?.text) return normalizeText(item.text) === normalized;
+    return false;
+  });
+}
+
+function sanitizeMemory(memory) {
+  if (!memory) return createDefaultMemory();
+
+  memory.profile ??= {};
+  memory.profile.preferences ??= [];
+  memory.profile.goals ??= [];
+  memory.profile.projects ??= [];
+
+  memory.dailyContext ??= { date: null, tasks: [], events: [], mood: null };
+  memory.relationships ??= [];
+  memory.semanticMemory ??= [];
+  memory.shortTermMemory ??= [];
+  memory.longTermMemory ??= [];
+  memory.entities ??= { people: [], places: [], projects: [] };
+
+  // پاکسازی dump
+  memory.shortTermMemory = (memory.shortTermMemory || []).filter(item => !isMemoryDump(item));
+  memory.semanticMemory = (memory.semanticMemory || []).filter(item => !isMemoryDump(item?.text || ""));
+  memory.longTermMemory = (memory.longTermMemory || []).filter(item => !isMemoryDump(item));
+
+  if (memory.profile.preferences) memory.profile.preferences = memory.profile.preferences.filter(item => !isMemoryDump(item));
+  if (memory.profile.goals) memory.profile.goals = memory.profile.goals.filter(item => !isMemoryDump(item));
+
+  return memory;
+}
+
+export async function getMemory(env, chatId) {
+  const data = await env.MEMORY.get(chatId);
+  if (!data) return createDefaultMemory();
+
+  try {
+    const parsed = JSON.parse(data);
+    // ساختار حافظه (از کد قبلی‌ات)
+    const memory = {
+      profile: parsed.profile || { name: null, family: { wife: null, husband: null, daughter: null, son: null }, preferences: [], goals: [], projects: [] },
+      entities: parsed.entities || { people: [], places: [], projects: [] },
+      shortTermMemory: parsed.shortTermMemory || [],
+      longTermMemory: parsed.longTermMemory || [],
+      relationships: parsed.relationships || [],
+      priorities: parsed.priorities || [],
+      semanticMemory: parsed.semanticMemory || [],
+      dailyContext: parsed.dailyContext || { date: null, tasks: [], events: [], mood: null }
+    };
+
+    return sanitizeMemory(memory);
+  } catch (e) {
+    console.error("Memory Parse Error", e);
+    return createDefaultMemory();
+  }
+}
+
+export async function saveMemory(env, chatId, memory) {
+  const clean = sanitizeMemory(memory);
+  await env.MEMORY.put(chatId, JSON.stringify(clean));
+}
+
+export async function saveWithVector(env, chatId, category, text, metadata = {}) {
+  if (!text || text.length < 15) return;
+  await storeVector(env, `\( {chatId}: \){category}:${Date.now()}`, text, { category, chatId, ...metadata });
+}
+
+export async function retrieveRelevantMemory(env, chatId, query, limit = 7) {
+  return await semanticSearch(env, query, limit);
+}
+
+function createDefaultMemory() {
+  return {
+    profile: { name: null, family: { wife: null, husband: null, daughter: null, son: null }, preferences: [], goals: [], projects: [] },
+    entities: { people: [], places: [], projects: [] },
+    shortTermMemory: [],
+    longTermMemory: [],
+    relationships: [],
+    priorities: [],
+    semanticMemory: [],
+    dailyContext: { date: null, tasks: [], events: [], mood: null }
+  };
+}
 export function rememberName(memory, text) {
   if (shouldSkipText(text, 200)) return;
 

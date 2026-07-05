@@ -1,7 +1,3 @@
-// src/memory.js
-import { storeVector, semanticSearch } from './vector.js';
-import { cleanText } from './utils.js';
-
 function shouldSkipText(text, max = 1000) {
   if (!text) return true;
 
@@ -467,15 +463,4 @@ export function rememberSemantic(memory, text) {
     memory.semanticMemory =
       memory.semanticMemory.slice(-100);
   }
-}
-
-// === توابع جدید Vector ===
-export async function saveWithVector(env, chatId, category, text, metadata = {}) {
-  if (!text || text.length < 15) return;
-  await storeVector(env, `\( {chatId}: \){category}:${Date.now()}`, text, { category, chatId, ...metadata });
-}
-
-export async function retrieveRelevantMemory(env, chatId, query, limit = 6) {
-  const results = await semanticSearch(env, query, limit);
-  return results.map(m => ({ text: m.metadata?.text || "", score: m.score }));
 }

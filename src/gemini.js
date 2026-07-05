@@ -1,25 +1,29 @@
-// src/gemini.js - نسخه سبک برای تست
-export async function askGemini(env, relevantContext, userText, modelName = "gemini-2.5-flash-exp") {
-  const prompt = `
-تو جلال دوم، دستیار شخصی من هستی. دوستانه و مفید پاسخ بده.
+// src/gemini.js
+import { SYSTEM_PROMPT } from "./prompt.js";
 
-اطلاعات مرتبط:
+export async function askGemini(env, relevantContext, userText) {
+  const profile = {}; // فعلاً ساده نگه داشتیم
+  const shortTerm = [];
+  const longTerm = [];
+
+  const prompt = `
+${SYSTEM_PROMPT}
+
+=== اطلاعات مرتبط ===
 ${relevantContext || "هیچ"}
 
-پیام کاربر: ${userText}
+=== پیام کاربر ===
+${userText}
 
-پاسخ:
+پاسخ جلال دوم:
 `;
 
-  const key = env.GEMINI_API_KEY;
-  if (!key) return "کلید API تنظیم نشده.";
-
   try {
-    const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-exp:generateContent?key=${key}`,
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-exp:generateContent?key=${env.GEMINI_API_KEY}`,
       {
         method: "POST",
-        headers: {"Content-Type": "application/json"},
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           contents: [{ role: "user", parts: [{ text: prompt }] }],
           generationConfig: { temperature: 0.7, maxOutputTokens: 800 }
@@ -27,10 +31,10 @@ ${relevantContext || "هیچ"}
       }
     );
 
-    const data = await res.json();
+    const data = await response.json();
     return data?.candidates?.[0]?.content?.parts?.[0]?.text || "پاسخی دریافت نشد.";
-  } catch (e) {
-    console.error(e);
-    return "در حال حاضر کمی شلوغم. بعداً دوباره بپرس.";
+  } catch (err) {
+    console.error("Gemini Error:", err);
+    return "در حال حاضر مدل شلوغ است. کمی بعد دوباره امتحان کن.";
   }
 }

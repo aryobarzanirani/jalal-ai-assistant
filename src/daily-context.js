@@ -1,3 +1,4 @@
+import { hasTask } from "./task-utils.js";
 export function updateDailyContext(memory, userText) {
   if (
   !userText ||
@@ -40,7 +41,9 @@ export function updateDailyContext(memory, userText) {
 
   for (const trigger of taskTriggers) {
     if (text.includes(trigger)) {
-      memory.dailyContext.tasks.push(text);
+      if (!hasTask(memory.dailyContext.tasks, text)) {
+  memory.dailyContext.tasks.push(text);
+}
       break;
     }
   }

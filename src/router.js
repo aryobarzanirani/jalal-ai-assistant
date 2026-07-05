@@ -1,6 +1,3 @@
-// src/router.js
-import { smartRoute } from "./multi-router.js";   // فقط این خط اضافه شد
-
 export function getDirectResponse(memory, userText) {
   const text = userText.trim();
 

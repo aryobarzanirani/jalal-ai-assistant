@@ -1,3 +1,27 @@
+export function isQuestion(text) {
+  if (!text) return false;
+
+  const t = text.trim();
+
+  const markers = [
+    "چیه",
+    "چیست",
+    "کیه",
+    "کیست",
+    "کجاست",
+    "کجاست",
+    "چطور",
+    "چگونه",
+    "چرا",
+    "آیا"
+  ];
+
+  if (t.includes("?") || t.includes("؟")) {
+    return true;
+  }
+
+  return markers.some(word => t.includes(word));
+}
 function shouldSkipText(text, max = 1000) {
   if (!text) return true;
 
@@ -250,7 +274,9 @@ function isValidName(name) {
 
 export function rememberName(memory, text) {
   if (shouldSkipText(text, 200)) return;
-
+  if (isQuestion(text)) {
+  return;
+}
   const t = text.trim();
 
   const patterns = [
@@ -277,7 +303,9 @@ if (!name) return;
 
 export function rememberFamily(memory, text) {
   if (shouldSkipText(text, 200)) return;
-
+ if (isQuestion(text)) {
+  return;
+}
   const t = text.trim();
 
   const patterns = [
@@ -303,7 +331,9 @@ export function rememberFamily(memory, text) {
 
 export function rememberPreference(memory, text) {
   if (shouldSkipText(text, 500)) return;
-
+  if (isQuestion(text)) {
+  return;
+}
   const triggers = ["دوست دارم", "علاقه دارم", "علاقه‌مندم"];
 
   for (const trigger of triggers) {
@@ -321,7 +351,9 @@ export function rememberPreference(memory, text) {
 
 export function rememberGoal(memory, text) {
   if (shouldSkipText(text, 500)) return;
-
+  if (isQuestion(text)) {
+  return;
+}
   const t = text.trim();
 
   if (
@@ -362,7 +394,9 @@ export function rememberGoal(memory, text) {
 
 export function rememberRelationship(memory, text) {
   if (shouldSkipText(text, 500)) return;
-
+  if (isQuestion(text)) {
+  return;
+}
   const t = text.trim();
 
   const motherMatch =
@@ -414,7 +448,9 @@ export function rememberRelationship(memory, text) {
 
 export function rememberSemantic(memory, text) {
   if (shouldSkipText(text, 1500)) return;
-
+  if (isQuestion(text)) {
+  return;
+}
   const t = text.trim();
 
   let category = "general";

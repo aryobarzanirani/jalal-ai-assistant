@@ -1,3 +1,4 @@
+import { splitSentences } from "./splitter.js";
 import { normalizeInput } from "./normalize.js";
 import { calculatePriority } from "./priority-engine.js";
 import { updateDailyContext } from "./daily-context.js";
@@ -73,10 +74,7 @@ export default {
         );
         return new Response("OK");
       }
-const lines = normalizedText
-  .split("\n")
-  .map(x => x.trim())
-  .filter(Boolean);
+const lines = splitSentences(normalizedText);
       
 if (isMemoryDump(normalizedText)) {
   console.log("MEMORY DUMP BLOCKED");

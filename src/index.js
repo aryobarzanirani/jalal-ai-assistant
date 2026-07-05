@@ -19,8 +19,7 @@ import {
   rememberPreference,
   rememberRelationship,
   rememberSemantic,
-  isMemoryDump,
-  retrieveRelevantMemory   // ← اضافه شد
+  isMemoryDump
 } 
   from "./memory.js";
 
@@ -30,7 +29,6 @@ import {
   releaseLock
 } from "./lock.js";
 import { getDirectResponse } from "./router.js";
-import { smartRoute } from "./multi-router.js";   // ← اضافه شد
 
 export default {
   async fetch(request, env) {
@@ -138,13 +136,10 @@ if (directResponse) {
   const relevantMemory =
     getRelevantMemory(memory, userText);
 
-  // استفاده از Semantic Vector Search
-  const vectorResults = await retrieveRelevantMemory(env, chatId, userText);
-
   try {
     reply = await askGemini(
       env,
-      relevantMemory,  // می‌توانی بعداً vectorResults را هم ترکیب کنی
+      relevantMemory,
       userText
     );
   } catch (err) {

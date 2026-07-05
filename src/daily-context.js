@@ -45,7 +45,9 @@ export function updateDailyContext(memory, userText) {
       if (!hasTask(memory.dailyContext.tasks, text)) {
   memory.dailyContext.tasks.push({
   text,
-  date: extractDate(text)
+  date: extractDate(text),
+  completed: false,
+  createdAt: Date.now()
 });
 }
       break;

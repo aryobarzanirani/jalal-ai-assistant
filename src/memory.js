@@ -1,68 +1,3 @@
-
-  
-}
-
-export async function getMemory(env, chatId) {
-  const data = await env.MEMORY.get(chatId);
-  if (!data) return createDefaultMemory();
-
-  try {
-    const parsed = JSON.parse(data);
-    // ... (بقیه کد getMemory قبلی‌ات بدون تغییر)
-    const memory = { /* ساختار قبلی‌ات */ };
-    return sanitizeMemory(memory);
-  } catch {
-    return createDefaultMemory();
-  }
-}
-
-export async function saveMemory(env, chatId, memory) {
-  const cleanMemory = sanitizeMemory(memory);
-  await env.MEMORY.put(chatId, JSON.stringify(cleanMemory));
-}
-
-/** نسخه جدید با Vector */
-export async function saveWithVector(env, chatId, category, text, metadata = {}) {
-  const memory = await getMemory(env, chatId);
-  
-  // ذخیره معمولی
-  if (category === "semantic") {
-    rememberSemantic(memory, text);
-  } else if (category === "goal") {
-    rememberGoal(memory, text);
-  } // و بقیه rememberها
-
-  await saveMemory(env, chatId, memory);
-
-  // ذخیره semantic vector
-  if (text && text.length > 15) {
-    await storeVector(env, `\( {chatId}: \){category}`, text, {
-      category,
-      chatId,
-      ...metadata
-    });
-  }
-}
-
-export async function retrieveRelevantMemory(env, chatId, query, limit = 7) {
-  const vectorResults = await semanticSearch(env, query, limit);
-  return vectorResults.map(m => ({
-    text: m.metadata.text,
-    score: m.score,
-    category: m.metadata.category
-  }));
-}
-
-function createDefaultMemory() {
-  return {
-    profile: { name: null, family: { wife: null, husband: null, daughter: null, son: null }, preferences: [], goals: [], projects: [] },
-    entities: { people: [], places: [], projects: [] },
-    shortTermMemory: [],
-    longTermMemory: [],
-    relationships: [],
-    priorities: [],
-    semanticMemory: [],
-    dailyContext: { date: null, tasks: [], events: [], mood: null }
 // src/memory.js
 import { getEmbedding, storeVector, semanticSearch } from './vector.js';
 import { cleanText } from './utils.js';
@@ -182,6 +117,7 @@ function createDefaultMemory() {
     dailyContext: { date: null, tasks: [], events: [], mood: null }
   };
 }
+
 export function rememberName(memory, text) {
   if (shouldSkipText(text, 200)) return;
 

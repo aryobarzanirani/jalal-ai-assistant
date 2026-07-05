@@ -1,6 +1,5 @@
 import { SYSTEM_PROMPT } from "./prompt.js";
 import { getGeminiKeys } from "./gemini-keys.js";
-import { smartRoute } from "./multi-router.js";   // ← فقط این خط اضافه شد
 
 export async function askGemini(env, memory, userText) {
   const profile = memory.profile || {};
@@ -78,14 +77,10 @@ ${userText}
     return "هیچ Gemini API Key تنظیم نشده است.";
   }
 
-  // استفاده از Multi-Router برای انتخاب مدل
-  const route = smartRoute(env, { text: userText }, memory);
-  const model = route.model || "gemini-2.5-flash";
-
   for (const apiKey of apiKeys) {
     try {
       const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/\( {model}:generateContent?key= \){apiKey}`,
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
         {
           method: "POST",
           headers: {

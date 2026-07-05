@@ -135,14 +135,14 @@ export default {
         memory.shortTermMemory = memory.shortTermMemory.slice(-20);
       }
 
-      // Save Memory + Vector
-      await saveMemory(env, chatId, memory);
+ // Save Memory + Vector
+await saveMemory(env, chatId, memory);
 
-      // ذخیره semantic vector برای یادگیری بهتر
-      if (userText.length > 20) {
-        await saveWithVector(env, chatId, "conversation", userText, { type: "user" });
-        await saveWithVector(env, chatId, "response", reply, { type: "assistant" });
-      }
+// فعلاً غیرفعال کردیم تا quota کمتر مصرف شود
+// if (userText.length > 20) {
+//   await saveWithVector(env, chatId, "conversation", userText, { type: "user" });
+//   await saveWithVector(env, chatId, "response", reply, { type: "assistant" });
+// }
 
       await sendTelegram(env, chatId, reply);
 

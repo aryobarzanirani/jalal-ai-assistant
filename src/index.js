@@ -110,6 +110,13 @@ for (const line of lines) {
         memory.priorities = [];
       }
 
+      const exists = memory.priorities.some(
+  item => item.text === intent
+);
+
+if (exists) {
+  continue;
+}
       memory.priorities.push({
         text: intent,
         score: priorityData.score,

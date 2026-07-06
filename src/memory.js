@@ -96,21 +96,26 @@ function alreadyExists(list, text) {
   });
 }
 function sanitizeMemory(memory) {
+
+  if (!memory) {
+    return createDefaultMemory();
+  }
+
   memory.profile ??= {};
-memory.profile.preferences ??= [];
-memory.profile.goals ??= [];
+  memory.profile.preferences ??= [];
+  memory.profile.goals ??= [];
 
-memory.dailyContext ??= {
-  date: null,
-  tasks: [],
-  events: [],
-  mood: null
-};
+  memory.dailyContext ??= {
+    date: null,
+    tasks: [],
+    events: [],
+    mood: null
+  };
 
-memory.relationships ??= [];
-memory.semanticMemory ??= [];
-memory.shortTermMemory ??= [];
-memory.longTermMemory ??= [];
+  memory.relationships ??= [];
+  memory.semanticMemory ??= [];
+  memory.shortTermMemory ??= [];
+  memory.longTermMemory ??= [];
   if (!memory) {
     return createDefaultMemory();
   }
@@ -277,9 +282,10 @@ function isValidName(name) {
 export function rememberName(memory, text) {
   if (shouldSkipText(text, 200)) return;
 
-  if (isQuestion(name)) {
-  return;
+  if (isQuestion(text)) {
+    return;
   }
+
   const t = text.trim();
 
   const patterns = [
@@ -290,16 +296,23 @@ export function rememberName(memory, text) {
   for (const pattern of patterns) {
     const match = t.match(pattern);
 
-    if (match) {
-      let name = match[1].trim();
+    if (!match) continue;
 
-      name = name.replace(/(است|هست)$/, "").trim();
-if (!name) return;
-      
-      if (isValidName(name)) {
-        memory.profile.name = name;
-        return;
-      }
+    let name = match[1].trim();
+
+    if (isQuestion(name)) {
+      return;
+    }
+
+    name = name
+      .replace(/(است|هست)$/i, "")
+      .trim();
+
+    if (!name) return;
+
+    if (isValidName(name)) {
+      memory.profile.name = name;
+      return;
     }
   }
 }
@@ -349,7 +362,9 @@ for (const item of patterns) {
   if (!match) continue;
 
   let name = match[1].trim();
-
+if (badNames.includes(name)) {
+  return;
+}
 if (isQuestion(name)) {
   return;
 }
@@ -486,6 +501,9 @@ export function rememberSemantic(memory, text) {
   if (isQuestion(text)) {
   return;
 }
+  if (alreadyExists(memory.longTermMemory, t)) {
+  return;
+  }
   const t = text.trim();
 
   let category = "general";

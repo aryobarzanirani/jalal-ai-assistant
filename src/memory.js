@@ -274,16 +274,6 @@ function isValidName(name) {
   return true;
 }
 
-
-function isValidName(name) {
-  if (!name) return false;
-
-  const cleaned = name.trim();
-
-  if (cleaned.length < 2 || cleaned.length > 25) {
-    return false;
-  }
-
   const badWords = ["چیه", "چی", "کیه", "چیست"];
 
   if (badWords.includes(cleaned)) {

@@ -1,5 +1,3 @@
-import { expandWords }
-from "./synonyms.js";
 import { expandWords } from "./synonyms.js";
 function normalize(text) {
 

@@ -274,20 +274,9 @@ function isValidName(name) {
   return true;
 }
 
-  const badWords = ["چیه", "چی", "کیه", "چیست"];
-
-  if (badWords.includes(cleaned)) {
-    return false;
-  }
-
-  return true;
-}
-
 export function rememberName(memory, text) {
   if (shouldSkipText(text, 200)) return;
-  if (isQuestion(text)) {
-  return;
-}
+
   if (isQuestion(name)) {
   return;
   }
@@ -359,14 +348,17 @@ for (const item of patterns) {
 
   if (!match) continue;
 
-  let name = match[1]
-    .trim()
-    .replace(/(است|هست)$/i, "")
-    .trim();
+  let name = match[1].trim();
 
-  if (badNames.includes(name)) {
-    return;
-  }
+if (isQuestion(name)) {
+  return;
+}
+
+name = name.replace(/(است|هست)$/i, "").trim();
+
+if (!name) {
+  return;
+}
 
   memory.profile.family[item.key] = name;
   return;

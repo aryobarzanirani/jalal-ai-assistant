@@ -1,3 +1,4 @@
+rememberSynonym(memory, line);
 import {
   resolveLastTask
 } from "./context-resolver.js";
@@ -100,6 +101,7 @@ for (const line of lines) {
     rememberRelationship(memory, intent);
     rememberPreference(memory, intent);
     rememberSemantic(memory, intent);
+    rememberSynonym(memory, line);
 
     extractEntities(memory, intent);
     extractRelationships(memory, intent);

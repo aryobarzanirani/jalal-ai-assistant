@@ -53,7 +53,7 @@ export function getRelevantMemory(memory, userText) {
   for (const item of memory.semanticMemory || []) {
 
     if (
-      similarity(item.text, text) >= 1
+      similarity(item.text, text, memory) >= 1
     ) {
       relevant.semanticMemory.push(item);
     }
@@ -64,7 +64,7 @@ export function getRelevantMemory(memory, userText) {
   for (const item of memory.longTermMemory || []) {
 
     if (
-      similarity(item, text) >= 1
+      similarity(item, text, memory) >= 1
     ) {
       relevant.longTermMemory.push(item);
     }
@@ -75,7 +75,7 @@ export function getRelevantMemory(memory, userText) {
   for (const item of memory.priorities || []) {
 
     if (
-      similarity(item.text, text) >= 1
+      similarity(item, text, memory) >= 1
     ) {
       relevant.priorities.push(item);
     }

@@ -1,4 +1,7 @@
-rememberSynonym(memory, line);
+import { consolidateMemory } from "./memory-consolidator.js";
+import { cleanupMemory } from "./memory-lifecycle.js";
+import { rememberSynonym }
+from "./dynamic-synonyms.js";
 import {
   resolveLastTask
 } from "./context-resolver.js";
@@ -220,10 +223,9 @@ if (!reply) {
         `جلال دوم: ${reply}`
       );
 
-      if (memory.shortTermMemory.length > 20) {
-        memory.shortTermMemory =
-          memory.shortTermMemory.slice(-20);
-      }
+      consolidateMemory(memory);
+
+      cleanupMemory(memory);
 
       await saveMemory(env, chatId, memory);
 

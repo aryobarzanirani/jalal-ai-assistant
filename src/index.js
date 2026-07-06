@@ -1,3 +1,4 @@
+import { forgettingPolicy } from "./forgetting.js";
 import { promoteMemory } from "./memory-promotion.js";
 import { consolidateMemory } from "./memory-consolidator.js";
 import { cleanupMemory } from "./memory-lifecycle.js";
@@ -217,22 +218,24 @@ if (!reply) {
   }
 }
       memory.shortTermMemory.push(
-        `کاربر: ${normalizedText}`
-      );
+  `کاربر: ${normalizedText}`
+);
 
-      memory.shortTermMemory.push(
-        `جلال دوم: ${reply}`
-      );
+memory.shortTermMemory.push(
+  `جلال دوم: ${reply}`
+);
 
-      consolidateMemory(memory);
+consolidateMemory(memory);
 
-      promoteMemory(memory);
+promoteMemory(memory);
 
-      cleanupMemory(memory);
+forgettingPolicy(memory);
 
-      await saveMemory(env, chatId, memory);
-      await sendTelegram(env, chatId, reply);
+cleanupMemory(memory);
 
+await saveMemory(env, chatId, memory);
+
+await sendTelegram(env, chatId, reply);
       if (detectNeedPlanning(userText)) {
         const planningReply =
           getPlanningResponse();

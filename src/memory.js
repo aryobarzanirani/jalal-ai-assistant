@@ -198,7 +198,8 @@ export async function getMemory(env, chatId) {
       relationships: parsed.relationships || [],
       priorities: parsed.priorities || [],
       semanticMemory: parsed.semanticMemory || [],
-
+    dynamicSynonyms: parsed.dynamicSynonyms || {},
+      
       dailyContext: parsed.dailyContext || {
         date: null,
         tasks: [],
@@ -244,7 +245,8 @@ function createDefaultMemory() {
     relationships: [],
     priorities: [],
     semanticMemory: [],
-
+    dynamicSynonyms: {},
+    
     dailyContext: {
       date: null,
       tasks: [],

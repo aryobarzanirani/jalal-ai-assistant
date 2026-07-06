@@ -4,7 +4,7 @@ function shouldPromote(item) {
     return false;
   }
 
-  const text =
+  let text =
     typeof item === "string"
       ? item
       : item.text;
@@ -13,11 +13,19 @@ function shouldPromote(item) {
     return false;
   }
 
+  // حذف پیشوندهای ذخیره شده در ShortTermMemory
+  text = text
+    .replace(/^کاربر:\s*/, "")
+    .replace(/^جلال دوم:\s*/, "")
+    .trim();
+
   const keywords = [
     "اسم من",
     "اسم دخترم",
     "اسم پسرم",
     "اسم همسرم",
+    "اسم زنم",
+    "اسم شوهرم",
     "هدف من",
     "میخوام",
     "می‌خوام",
@@ -29,8 +37,8 @@ function shouldPromote(item) {
     "بیمارستان"
   ];
 
-  return keywords.some(
-    keyword => text.includes(keyword)
+  return keywords.some(keyword =>
+    text.includes(keyword)
   );
 }
 

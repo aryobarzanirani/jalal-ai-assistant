@@ -38,30 +38,33 @@ function expandDynamic(memory, words) {
 
 }
 
-export function similarity(a,b) {
+export function similarity(a, b, memory = null) {
 
-  const wa =
+  let wa =
     expandWords(
       normalize(a).split(" ")
     );
 
-  const wb =
+  let wb =
     expandWords(
       normalize(b).split(" ")
     );
+
+  if (memory) {
+    wa = expandDynamic(memory, wa);
+    wb = expandDynamic(memory, wb);
+  }
 
   let score = 0;
 
   for (const word of wa) {
 
     if (wb.includes(word)) {
-
       score++;
-
     }
 
   }
 
   return score;
 
-      }
+}

@@ -1,3 +1,4 @@
+import { promoteMemory } from "./memory-promotion.js";
 import { consolidateMemory } from "./memory-consolidator.js";
 import { cleanupMemory } from "./memory-lifecycle.js";
 import { rememberSynonym }
@@ -225,10 +226,11 @@ if (!reply) {
 
       consolidateMemory(memory);
 
+      promoteMemory(memory);
+
       cleanupMemory(memory);
 
       await saveMemory(env, chatId, memory);
-
       await sendTelegram(env, chatId, reply);
 
       if (detectNeedPlanning(userText)) {

@@ -1,4 +1,4 @@
-import { detectIntent } from "./intent-router.js";
+import { extractEntities } from "./extractEntities";
 import { forgettingPolicy } from "./forgetting.js";
 import { promoteMemory } from "./memory-promotion.js";
 import { consolidateMemory } from "./memory-consolidator.js";
@@ -19,7 +19,6 @@ import {
  getPlanningResponse
 } from "./decision-engine.js";
 import { extractRelationships } from "./relationship.js";
-import { extractEntities } from "./entity.js";
 import { classifyIntent } from "./intent.js";
 import { getFallbackResponse } from "./fallback.js";
 import { getRelevantMemory } from "./retriever.js";

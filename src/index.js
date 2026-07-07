@@ -1,28 +1,11 @@
-import { extractEntities } from "./extractEntities";
-import { forgettingPolicy } from "./forgetting.js";
-import { promoteMemory } from "./memory-promotion.js";
-import { consolidateMemory } from "./memory-consolidator.js";
-import { cleanupMemory } from "./memory-lifecycle.js";
-import { rememberSynonym }
-from "./dynamic-synonyms.js";
-import {
-  resolveLastTask
-} from "./context-resolver.js";
-import { completeLastTask } from "./task-manager.js";
-import { splitIntent } from "./intent-splitter.js";
-import { splitSentences } from "./splitter.js";
-import { normalizeInput } from "./normalize.js";
-import { calculatePriority } from "./priority-engine.js";
-import { updateDailyContext } from "./daily-context.js";
-import {
-  detectNeedPlanning,
- getPlanningResponse
-} from "./decision-engine.js";
-import { extractRelationships } from "./relationship.js";
-import { classifyIntent } from "./intent.js";
+import { detectIntent } from "./intent.js";
+import { extractEntities } from "./extractEntities.js";
+
+import { getDirectResponse } from "./router.js";
 import { getFallbackResponse } from "./fallback.js";
-import { getRelevantMemory } from "./retriever.js";
+
 import { askGemini } from "./gemini.js";
+
 import {
   getMemory,
   saveMemory,
@@ -33,15 +16,40 @@ import {
   rememberRelationship,
   rememberSemantic,
   isMemoryDump
-} 
-  from "./memory.js";
+} from "./memory.js";
+
+import { forgettingPolicy } from "./forgetting.js";
+import { promoteMemory } from "./memory-promotion.js";
+import { consolidateMemory } from "./memory-consolidator.js";
+import { cleanupMemory } from "./memory-lifecycle.js";
+
+import { rememberSynonym } from "./dynamic-synonyms.js";
+
+import { resolveLastTask } from "./context-resolver.js";
+import { completeLastTask } from "./task-manager.js";
+
+import { splitIntent } from "./intent-splitter.js";
+import { splitSentences } from "./splitter.js";
+import { normalizeInput } from "./normalize.js";
+
+import { calculatePriority } from "./priority-engine.js";
+import { updateDailyContext } from "./daily-context.js";
+
+import {
+  detectNeedPlanning,
+  getPlanningResponse
+} from "./decision-engine.js";
+
+import { extractRelationships } from "./relationship.js";
+
+import { getRelevantMemory } from "./retriever.js";
 
 import { sendTelegram } from "./telegram.js";
+
 import {
   acquireLock,
   releaseLock
 } from "./lock.js";
-import { getDirectResponse } from "./router.js";
 
 export default {
   async fetch(request, env) {

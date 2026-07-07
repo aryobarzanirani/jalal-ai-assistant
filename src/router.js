@@ -116,32 +116,29 @@ if (intent === "family") {
     return "نام پسر شما در حافظه ثبت نشده است.";
   }
 }
-  // Preferences
-  if (
-    if (intent === "preferences")) {
-    const preferences =
-      memory?.profile?.preferences || [];
+// Preferences
+if (intent === "preferences") {
+  const preferences =
+    memory?.profile?.preferences || [];
 
-    if (preferences.length) {
-      return [
-        "علایق ثبت‌شده شما:",
-        ...preferences.slice(-5)
-      ].join("\n");
-    }
-
-    return "هنوز علاقه‌ای از شما ثبت نشده است.";
+  if (preferences.length) {
+    return [
+      "علایق ثبت‌شده شما:",
+      ...preferences.slice(-5)
+    ].join("\n");
   }
 
-  // Task
-  if (intent === "task")
-    return "متوجه شدم، این مورد را در برنامه‌ات نگه می‌دارم.";
-  }
+  return "هنوز علاقه‌ای از شما ثبت نشده است.";
+}
 
-  // Schedule
-  if (
-    if (intent === "schedule") {
-    return "متوجه شدم، ثبت شد.";
-  }
+// Task
+if (intent === "task") {
+  return "متوجه شدم، این مورد را در برنامه‌ات نگه می‌دارم.";
+}
+// Schedule
+if (intent === "schedule") {
+  return "متوجه شدم، ثبت شد.";
+}
 
 // Goals / Projects
 if (intent === "goal") {
@@ -175,8 +172,8 @@ if (intent === "goal") {
   }
 
 }
-  // Memory Status
-  if (intent === "memry status") {
+  /// Memory Status
+if (intent === "memory_status") {
     const family =
       memory?.profile?.family || {};
 

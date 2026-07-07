@@ -45,7 +45,7 @@ export function getDirectResponse(
 
   return "هنوز نام شما را نمی‌دانم.";
   }
-
+if (intent === "family") {
 // Daughter
 if (
   text.includes("اسم دخترم چیه") ||
@@ -140,7 +140,7 @@ if (
   ) {
     return "متوجه شدم، ثبت شد.";
   }
-
+if (intent === "goal") {
   // Goals / Projects
   if (
     text.includes("روی چه پروژه‌ای کار می‌کنم") ||

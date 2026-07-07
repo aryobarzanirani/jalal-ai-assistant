@@ -1,199 +1,141 @@
 export function getDirectResponse(
   memory,
   userText,
-  intent
-)  {
-  const text = userText.trim();
+  intent,
+  entities = {}
+) {
+  switch (intent) {
 
-  // Greeting
-  if (intent === "greeting")  {
-    const name = memory?.profile?.name;
+    // ---------------- Greeting ----------------
 
-    if (name) {
-      return `سلام ${name}.`;
+    case "greeting": {
+      const name = memory?.profile?.name;
+
+      return name
+        ? `سلام ${name}.`
+        : "سلام. خوشحالم که برگشتی.";
     }
 
-    return "سلام. خوشحالم که برگشتی.";
-  }
+    // ---------------- Bot ----------------
 
-  // Small Talk
-  if (
-    text.includes("خوبی") ||
-    text.includes("چطوری")
-  ) {
-    return "خوبم. آماده‌ام کمکت کنم.";
-  }
+    case "bot_identity":
+      return "اسم من جلال دوم است.";
 
-  if (
-    text === "هستی؟" ||
-    text === "هستی" ||
-    text === "آنجایی؟"
-  ) {
-    return "بله، در خدمتم.";
-  }
+    // ---------------- User ----------------
 
-  // Identity
-  if (intent === "bot_identity")  {
-    return "اسم من جلال دوم است.";
-  }
+    case "user_name":
+      return memory?.profile?.name
+        ? `نام شما ${memory.profile.name} است.`
+        : "هنوز نام شما را نمی‌دانم.";
 
-  // User Name
-  if (intent === "user_name") {
-  if (memory?.profile?.name) {
-    return `نام شما ${memory.profile.name} است.`;
-  }
+    // ---------------- Family ----------------
 
-  return "هنوز نام شما را نمی‌دانم.";
-  }
+    case "family":
 
+      switch (entities.family) {
 
-// Family
-if (intent === "family") {
+        case "daughter":
+          return memory?.profile?.family?.daughter
+            ? `نام دختر شما ${memory.profile.family.daughter} است.`
+            : "نام دختر شما در حافظه ثبت نشده است.";
 
-  // Daughter
-  if (
-    text.includes("اسم دخترم چیه") ||
-    text.includes("اسم دخترم چیست") ||
-    text === "اسم دخترم؟" ||
-    text === "اسم دخترم" ||
-    text.includes("نام دخترم چیه") ||
-    text.includes("نام دخترم چیست")
-  ) {
-    const daughter = memory?.profile?.family?.daughter;
+        case "son":
+          return memory?.profile?.family?.son
+            ? `نام پسر شما ${memory.profile.family.son} است.`
+            : "نام پسر شما در حافظه ثبت نشده است.";
 
-    if (daughter) {
-      return `نام دختر شما ${daughter} است.`;
+        case "wife":
+          return memory?.profile?.family?.wife
+            ? `نام همسر شما ${memory.profile.family.wife} است.`
+            : "نام همسر شما در حافظه ثبت نشده است.";
+
+        case "husband":
+          return memory?.profile?.family?.husband
+            ? `نام همسر شما ${memory.profile.family.husband} است.`
+            : "نام همسر شما در حافظه ثبت نشده است.";
+
+        default:
+          return null;
+      }
+
+    // ---------------- Preferences ----------------
+
+    case "preferences": {
+
+      const preferences =
+        memory?.profile?.preferences || [];
+
+      if (!preferences.length) {
+        return "هنوز علاقه‌ای از شما ثبت نشده است.";
+      }
+
+      return [
+        "علایق ثبت‌شده شما:",
+        ...preferences.slice(-5)
+      ].join("\n");
     }
 
-    return "نام دختر شما در حافظه ثبت نشده است.";
-  }
+    // ---------------- Goal ----------------
 
-  // Wife
-  if (
-    (text.includes("اسم همسرم") || text.includes("اسم زنم")) &&
-    (
-      text.includes("چیه") ||
-      text.includes("چیست") ||
-      text.includes("؟") ||
-      text === "اسم همسرم" ||
-      text === "اسم زنم"
-    )
-  ) {
-    const wife = memory?.profile?.family?.wife;
+    case "goal": {
 
-    if (wife) {
-      return `نام همسر شما ${wife} است.`;
+      const goals =
+        memory?.profile?.goals || [];
+
+      if (!goals.length) {
+        return "هدفی از شما در حافظه ثبت نشده است.";
+      }
+
+      if (entities.goal === "project") {
+        return `پروژه شما ${goals.at(-1)} است.`;
+      }
+
+      return goals.at(-1);
     }
 
-    return "نام همسر شما در حافظه ثبت نشده است.";
-  }
+    // ---------------- Schedule ----------------
 
-  // Husband
-  if (
-    text.includes("اسم شوهرم چیه") ||
-    text.includes("اسم شوهرم چیست")
-  ) {
-    const husband = memory?.profile?.family?.husband;
+    case "schedule":
+      return "متوجه شدم، ثبت شد.";
 
-    if (husband) {
-      return `نام همسر شما ${husband} است.`;
+    // ---------------- Task ----------------
+
+    case "task":
+      return "متوجه شدم، این مورد را در برنامه‌ات نگه می‌دارم.";
+
+    // ---------------- Memory ----------------
+
+    case "memory_status": {
+
+      const family =
+        memory?.profile?.family || {};
+
+      const familyCount =
+        Number(!!family.wife) +
+        Number(!!family.husband) +
+        Number(!!family.daughter) +
+        Number(!!family.son);
+
+      return [
+        "وضعیت حافظه:",
+        `نام: ${memory?.profile?.name || "ثبت نشده"}`,
+        `خانواده: ${familyCount}`,
+        `علایق: ${memory?.profile?.preferences?.length || 0}`,
+        `اهداف: ${memory?.profile?.goals?.length || 0}`,
+        `حافظه کوتاه‌مدت: ${memory?.shortTermMemory?.length || 0}`,
+        `حافظه بلندمدت: ${memory?.longTermMemory?.length || 0}`
+      ].join("\n");
     }
 
-    return "نام همسر شما در حافظه ثبت نشده است.";
+    // ---------------- Small Talk ----------------
+
+    case "smalltalk":
+      return "خوبم. آماده‌ام کمکت کنم.";
+
+    case "presence":
+      return "بله، در خدمتم.";
+
+    default:
+      return null;
   }
-
-  // Son
-  if (
-    text.includes("اسم پسرم چیه") ||
-    text.includes("اسم پسرم چیست")
-  ) {
-    const son = memory?.profile?.family?.son;
-
-    if (son) {
-      return `نام پسر شما ${son} است.`;
-    }
-
-    return "نام پسر شما در حافظه ثبت نشده است.";
-  }
-}
-// Preferences
-if (intent === "preferences") {
-  const preferences =
-    memory?.profile?.preferences || [];
-
-  if (preferences.length) {
-    return [
-      "علایق ثبت‌شده شما:",
-      ...preferences.slice(-5)
-    ].join("\n");
-  }
-
-  return "هنوز علاقه‌ای از شما ثبت نشده است.";
-}
-
-// Task
-if (intent === "task") {
-  return "متوجه شدم، این مورد را در برنامه‌ات نگه می‌دارم.";
-}
-// Schedule
-if (intent === "schedule") {
-  return "متوجه شدم، ثبت شد.";
-}
-
-// Goals / Projects
-if (intent === "goal") {
-
-  // Project
-  if (
-    text.includes("روی چه پروژه‌ای کار می‌کنم") ||
-    text.includes("پروژه من چیه")
-  ) {
-    const goals = memory?.profile?.goals || [];
-
-    if (goals.length) {
-      return `پروژه شما ${goals[goals.length - 1]} است.`;
-    }
-
-    return "هنوز پروژه‌ای ثبت نشده است.";
-  }
-
-  // Goal
-  if (
-    text.includes("هدف من چیه") ||
-    text.includes("هدف من چیست")
-  ) {
-    const goals = memory?.profile?.goals || [];
-
-    if (goals.length) {
-      return goals[goals.length - 1];
-    }
-
-    return "هدفی از شما در حافظه ثبت نشده است.";
-  }
-
-}
-  /// Memory Status
-if (intent === "memory_status") {
-    const family =
-      memory?.profile?.family || {};
-
-    let familyCount = 0;
-
-    if (family.wife) familyCount++;
-    if (family.husband) familyCount++;
-    if (family.daughter) familyCount++;
-    if (family.son) familyCount++;
-
-    return [
-      "وضعیت حافظه:",
-      `نام: ${memory?.profile?.name || "ثبت نشده"}`,
-      `خانواده: ${familyCount}`,
-      `علایق: ${memory?.profile?.preferences?.length || 0}`,
-      `اهداف: ${memory?.profile?.goals?.length || 0}`,
-      `حافظه کوتاه‌مدت: ${memory?.shortTermMemory?.length || 0}`,
-      `حافظه بلندمدت: ${memory?.longTermMemory?.length || 0}`
-    ].join("\n");
-  }
-
-  return null;
-}
+                }

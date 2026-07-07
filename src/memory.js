@@ -116,10 +116,6 @@ function sanitizeMemory(memory) {
   memory.semanticMemory ??= [];
   memory.shortTermMemory ??= [];
   memory.longTermMemory ??= [];
-  if (!memory) {
-    return createDefaultMemory();
-  }
-
   memory.shortTermMemory =
     (memory.shortTermMemory || []).filter(
       item => !isMemoryDump(item)
@@ -501,10 +497,11 @@ export function rememberSemantic(memory, text) {
   if (isQuestion(text)) {
   return;
 }
-  if (alreadyExists(memory.longTermMemory, t)) {
-  return;
-  }
   const t = text.trim();
+
+if (alreadyExists(memory.longTermMemory, t)) {
+  return;
+}
 
   let category = "general";
   let importance = 3;

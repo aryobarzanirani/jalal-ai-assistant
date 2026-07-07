@@ -1,4 +1,4 @@
-،export function detectIntent(text) {
+export function detectIntent(text) {
   const t = text.trim();
 
   // Greeting
@@ -10,16 +10,25 @@
     return "greeting";
   }
 
-  // Identity
+  // Small Talk
+  if (
+    t.includes("خوبی") ||
+    t.includes("چطوری")
+  ) {
+    return "smalltalk";
+  }
+
+  // Bot Identity
   if (
     t.includes("تو کی هستی") ||
     t.includes("اسمت چیه") ||
-    t.includes("اسم تو چیه")
+    t.includes("اسم تو چیه") ||
+    t.includes("کارت چیه")
   ) {
     return "bot_identity";
   }
 
-  // User name
+  // User Identity
   if (
     t === "من کیم" ||
     t === "اسم من چیه" ||
@@ -39,7 +48,15 @@
     return "family";
   }
 
-  // Goal
+  // Preferences
+  if (
+    t.includes("علاقه") ||
+    t.includes("دوست دارم")
+  ) {
+    return "preferences";
+  }
+
+  // Goals / Projects
   if (
     t.includes("هدف") ||
     t.includes("پروژه")
@@ -47,7 +64,7 @@
     return "goal";
   }
 
-  // Task
+  // Tasks
   if (
     t.includes("باید") ||
     t.includes("لازمه")
@@ -58,9 +75,19 @@
   // Schedule
   if (
     t.includes("شیفت") ||
-    t.includes("بیمارستان")
+    t.includes("بیمارستان") ||
+    t.includes("امروز") ||
+    t.includes("فردا")
   ) {
     return "schedule";
+  }
+
+  // Memory
+  if (
+    t.includes("وضعیت حافظه") ||
+    t.includes("حافظه")
+  ) {
+    return "memory_status";
   }
 
   return "unknown";

@@ -118,9 +118,7 @@ if (intent === "family") {
 }
   // Preferences
   if (
-    text.includes("علایق من چیه") ||
-    text.includes("به چی علاقه دارم")
-  ) {
+    if (intent === "preferences")) {
     const preferences =
       memory?.profile?.preferences || [];
 
@@ -135,18 +133,16 @@ if (intent === "family") {
   }
 
   // Task
-  if (text.includes("باید")) {
+  if (intent === "task")
     return "متوجه شدم، این مورد را در برنامه‌ات نگه می‌دارم.";
   }
 
   // Schedule
   if (
-    text.includes("شیفت") ||
-    text.includes("بیمارستان")
-  ) {
+    if (intent === "schedule") {
     return "متوجه شدم، ثبت شد.";
   }
-if (intent === "goal") {
+
 // Goals / Projects
 if (intent === "goal") {
 
@@ -180,7 +176,7 @@ if (intent === "goal") {
 
 }
   // Memory Status
-  if (text.includes("وضعیت حافظه")) {
+  if (intent === "memry status") {
     const family =
       memory?.profile?.family || {};
 

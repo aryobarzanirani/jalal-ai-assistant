@@ -6,12 +6,7 @@ export function getDirectResponse(
   const text = userText.trim();
 
   // Greeting
-  if (
-    text === "سلام" ||
-    text === "سلام جلال" ||
-    text === "صبح بخیر" ||
-    text === "شب بخیر"
-  ) {
+  if (intent === "greeting")  {
     const name = memory?.profile?.name;
 
     if (name) {

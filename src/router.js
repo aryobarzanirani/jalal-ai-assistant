@@ -1,4 +1,8 @@
-export function getDirectResponse(memory, userText) {
+export function getDirectResponse(
+  memory,
+  userText,
+  intent
+)  {
   const text = userText.trim();
 
   // Greeting

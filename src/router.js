@@ -45,25 +45,32 @@ export function getDirectResponse(memory, userText) {
 
   // User Name
   if (
-    text.includes("اسم من") &&
-    memory?.profile?.name
-  ) {
-    return `متوجه شدم ${memory.profile.name}.`;
+  text === "اسم من چیه" ||
+  text === "اسم من چیست" ||
+  text === "من کیم"
+) {
+  if (memory?.profile?.name) {
+    return `نام شما ${memory.profile.name} است.`;
   }
 
-  // Daughter
-    if (
-  (
-    text.includes("اسم دخترم چیه") ||
-    text.includes("اسم دخترم چیست") ||
-    text === "اسم دخترم؟" ||
-    text === "اسم دخترم"
-  ) &&
-  memory?.profile?.family?.daughter
+  return "هنوز نام شما را نمی‌دانم.";
+  }
+
+// Daughter
+if (
+  text.includes("اسم دخترم چیه") ||
+  text.includes("اسم دخترم چیست") ||
+  text === "اسم دخترم؟" ||
+  text === "اسم دخترم" ||
+  text.includes("نام دخترم چیه") ||
+  text.includes("نام دخترم چیست")
 ) {
-  return `نام دختر شما ${memory.profile.family.daughter} است.`;
-    }
-  {
+  const daughter = memory?.profile?.family?.daughter;
+
+  if (daughter) {
+    return `نام دختر شما ${daughter} است.`;
+  }
+
   return "نام دختر شما در حافظه ثبت نشده است.";
 }
 // Wife

@@ -1,3 +1,4 @@
+import { detectIntent } from "./intent-router.js";
 import { forgettingPolicy } from "./forgetting.js";
 import { promoteMemory } from "./memory-promotion.js";
 import { consolidateMemory } from "./memory-consolidator.js";
@@ -62,6 +63,7 @@ export default {
       chatId = message?.chat?.id?.toString();
       const userText = message?.text;
       const normalizedText = normalizeInput(userText);
+      const intent = detectIntent(normalizedText);
       if (!chatId) {
         return new Response("OK");
       }

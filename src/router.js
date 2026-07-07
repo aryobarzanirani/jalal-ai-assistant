@@ -33,12 +33,7 @@ export function getDirectResponse(
   }
 
   // Identity
-  if (
-    text.includes("تو کی هستی") ||
-    text.includes("اسم تو چیه") ||
-    text.includes("اسم شما چیه") ||
-    text.includes("اسمت چیه")
-  ) {
+  if (intent === "bot_identity")  {
     return "اسم من جلال دوم است.";
   }
 

@@ -153,7 +153,11 @@ if (memory.priorities.length > 50) {
 classifyIntent(userText);
 
       const directResponse =
-  getDirectResponse(memory, normalizedText);
+  getDirectResponse(
+    memory,
+    normalizedText,
+    intent
+  );
 
 let reply = null;
 

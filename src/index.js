@@ -102,12 +102,31 @@ for (const line of lines) {
 
   for (const intent of intents) {
 
-    rememberName(memory, intent);
-    rememberGoal(memory, intent);
-    rememberFamily(memory, intent);
-    rememberRelationship(memory, intent);
-    rememberPreference(memory, intent);
-    rememberSemantic(memory, intent);
+    switch (intent) {
+  case "user_name":
+    rememberName(memory, text);
+    break;
+
+  case "family":
+    rememberFamily(memory, text);
+    break;
+
+  case "preferences":
+    rememberPreference(memory, text);
+    break;
+
+  case "goal":
+    rememberGoal(memory, text);
+    break;
+
+  case "relationship":
+    rememberRelationship(memory, text);
+    break;
+
+  default:
+    rememberSemantic(memory, text);
+    break;
+    }
     rememberSynonym(memory, line);
 
     extractEntities(memory, intent);

@@ -38,11 +38,7 @@ export function getDirectResponse(
   }
 
   // User Name
-  if (
-  text === "اسم من چیه" ||
-  text === "اسم من چیست" ||
-  text === "من کیم"
-) {
+  if (intent === "user_name") {
   if (memory?.profile?.name) {
     return `نام شما ${memory.profile.name} است.`;
   }

@@ -46,21 +46,3 @@ export function classifyIntent(userText) {
   // Layer 3 → AI
   return "gemini";
 }
-// Family questions
-if (
-  t.includes("دختر") ||
-  t.includes("پسر") ||
-  t.includes("همسر") ||
-  t.includes("زن") ||
-  t.includes("شوهر")
-) {
-  return "family";
-}
-
-// Goals / Projects
-if (
-  t.includes("هدف") ||
-  t.includes("پروژه")
-) {
-  return "goal";
-}

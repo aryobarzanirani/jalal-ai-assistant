@@ -66,46 +66,49 @@ export default {
         return new Response("OK");
       }
 
-      chatId = message?.chat?.id?.toString();
-      const userText = message?.text;
-      const normalizedText = normalizeInput(userText);
-      const intent = detectIntent(normalizedText);
-      if (!chatId) {
-        return new Response("OK");
-      }
+chatId = message?.chat?.id?.toString();
+const userText = message?.text;
 
-      lockAcquired = await acquireLock(env, chatId);
+if (!chatId) {
+  return new Response("OK");
+}
 
-      if (!lockAcquired) {
-        await sendTelegram(
-          env,
-          chatId,
-          "در حال پردازش پیام قبلی هستم. لطفاً چند ثانیه صبر کنید."
-        );
-        return new Response("OK");
-      }
+if (!userText) {
+  await sendTelegram(
+    env,
+    chatId,
+    "فعلاً فقط پیام متنی را پردازش می‌کنم."
+  );
+  return new Response("OK");
+}
 
-      if (!userText) {
-        await sendTelegram(
-          env,
-          chatId,
-          "فعلاً فقط پیام متنی را پردازش می‌کنم."
-        );
-        return new Response("OK");
-      }
-const lines = splitSentences(normalizedText);
-      
+const normalizedText = normalizeInput(userText);
+
+lockAcquired = await acquireLock(env, chatId);
+
+if (!lockAcquired) {
+  await sendTelegram(
+    env,
+    chatId,
+    "در حال پردازش پیام قبلی هستم. لطفاً چند ثانیه صبر کنید."
+  );
+  return new Response("OK");
+}
+
 if (isMemoryDump(normalizedText)) {
   console.log("MEMORY DUMP BLOCKED");
   return new Response("OK");
 }
 
 const memory = await getMemory(env, chatId);
+
+const lines = splitSentences(normalizedText);
+
 for (const line of lines) {
 
   const currentIntent = detectIntent(line);
 
-  const entities = extractEntities(memory, line);
+  const entities = extractEntities(line);
 
   switch (currentIntent) {
 
@@ -140,8 +143,10 @@ for (const line of lines) {
 
   updateDailyContext(memory, line);
 
-  const priorityData =
-    calculatePriority(memory, line);
+  const priorityData = calculatePriority(
+    memory,
+    line
+  );
 
   if (priorityData.score >= 5) {
 
@@ -152,20 +157,16 @@ for (const line of lines) {
         p => p.text === line
       )
     ) {
-
       memory.priorities.push({
         text: line,
         score: priorityData.score,
         category: priorityData.category,
         timestamp: new Date()
           .toISOString()
-          .slice(0,10)
+          .slice(0, 10)
       });
-
     }
-
   }
-
 }
       memory.priorities ??= [];
 

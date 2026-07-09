@@ -314,43 +314,133 @@ export function rememberName(memory, text) {
 }
 
 export function rememberEntity(memory, entity) {
+// memory.js
 
-  if (!entity) return;
+import { alreadyExists } from "./utils.js";
 
-  switch (entity.type) {
+export function rememberEntity(memory, entities) {
 
-    case "name":
-      memory.profile.name = entity.value;
-      break;
+  if (!entities) return;
 
-    case "wife":
-      memory.profile.family.wife = entity.value;
-      break;
+  memory.profile ??= {};
+  memory.profile.family ??= {};
+  memory.profile.goals ??= [];
+  memory.profile.projects ??= [];
+  memory.profile.preferences ??= [];
+  memory.profile.tasks ??= [];
 
-    case "husband":
-      memory.profile.family.husband = entity.value;
-      break;
+  // ---------------- Name ----------------
 
-    case "daughter":
-      memory.profile.family.daughter = entity.value;
-      break;
+  if (entities.personName) {
+    memory.profile.name = entities.personName;
+  }
 
-    case "son":
-      memory.profile.family.son = entity.value;
-      break;
+  // ---------------- Family ----------------
 
-    case "goal":
-      if (!alreadyExists(memory.profile.goals, entity.value)) {
-        memory.profile.goals.push(entity.value);
-      }
-      break;
+  if (entities.relation && entities.personName) {
 
-    case "preference":
-      if (!alreadyExists(memory.profile.preferences, entity.value)) {
-        memory.profile.preferences.push(entity.value);
-      }
-      break;
+    switch (entities.relation) {
 
+      case "wife":
+        memory.profile.family.wife =
+          entities.personName;
+        break;
+
+      case "husband":
+        memory.profile.family.husband =
+          entities.personName;
+        break;
+
+      case "daughter":
+        memory.profile.family.daughter =
+          entities.personName;
+        break;
+
+      case "son":
+        memory.profile.family.son =
+          entities.personName;
+        break;
+
+    }
+
+  }
+
+  // ---------------- Goal ----------------
+
+  if (
+    entities.goal &&
+    !alreadyExists(memory.profile.goals, entities.goal)
+  ) {
+    memory.profile.goals.push(
+      entities.goal
+    );
+  }
+
+  // ---------------- Project ----------------
+
+  if (
+    entities.project &&
+    !alreadyExists(memory.profile.projects, entities.project)
+  ) {
+    memory.profile.projects.push(
+      entities.project
+    );
+  }
+
+  // ---------------- Task ----------------
+
+  if (
+    entities.task &&
+    !alreadyExists(memory.profile.tasks, entities.task)
+  ) {
+    memory.profile.tasks.push(
+      entities.task
+    );
+  }
+
+  // ---------------- Schedule ----------------
+
+  if (entities.schedule) {
+
+    memory.schedule ??= [];
+
+    if (
+      !alreadyExists(memory.schedule, entities.schedule)
+    ) {
+      memory.schedule.push(
+        entities.schedule
+      );
+    }
+
+  }
+
+  // ---------------- City ----------------
+
+  if (entities.city) {
+    memory.profile.city = entities.city;
+  }
+
+  // ---------------- Organization ----------------
+
+  if (entities.organization) {
+    memory.profile.organization =
+      entities.organization;
+  }
+
+  // ---------------- Date ----------------
+
+  if (entities.date) {
+    memory.context ??= {};
+    memory.context.date =
+      entities.date;
+  }
+
+  // ---------------- Time ----------------
+
+  if (entities.time) {
+    memory.context ??= {};
+    memory.context.time =
+      entities.time;
   }
 
 }

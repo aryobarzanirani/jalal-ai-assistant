@@ -28,7 +28,6 @@ import { rememberSynonym } from "./dynamic-synonyms.js";
 import { resolveLastTask } from "./context-resolver.js";
 import { completeLastTask } from "./task-manager.js";
 
-import { splitIntent } from "./intent-splitter.js";
 import { splitSentences } from "./splitter.js";
 import { normalizeInput } from "./normalize.js";
 
@@ -102,67 +101,65 @@ if (isMemoryDump(normalizedText)) {
 }
 
 const memory = await getMemory(env, chatId);
-      
 for (const line of lines) {
 
-  const intents = splitIntent(line);
+  const currentIntent = detectIntent(line);
 
-  for (const intent of intents) {
+  const entities = extractEntities(line);
 
-    switch (intent) {
-  case "user_name":
-    rememberName(memory, text);
-    break;
+  switch (currentIntent) {
 
-  case "family":
-    rememberFamily(memory, text);
-    break;
+    case "user_name":
+      rememberName(memory, line);
+      break;
 
-  case "preferences":
-    rememberPreference(memory, text);
-    break;
+    case "family":
+      rememberFamily(memory, line);
+      break;
 
-  case "goal":
-    rememberGoal(memory, text);
-    break;
+    case "preferences":
+      rememberPreference(memory, line);
+      break;
 
-  case "relationship":
-    rememberRelationship(memory, text);
-    break;
+    case "goal":
+      rememberGoal(memory, line);
+      break;
 
-  default:
-    rememberSemantic(memory, text);
-    break;
-    }
-    rememberSynonym(memory, line);
+    case "relationship":
+      rememberRelationship(memory, line);
+      break;
 
-    extractEntities(memory, intent);
-    extractRelationships(memory, intent);
-    updateDailyContext(memory, intent);
+    default:
+      rememberSemantic(memory, line);
+      break;
+  }
 
-    const priorityData =
-      calculatePriority(memory, intent);
+  rememberSynonym(memory, line);
 
-    if (priorityData.score >= 5) {
+  extractRelationships(memory, line);
 
-      if (!memory.priorities) {
-        memory.priorities = [];
-      }
+  updateDailyContext(memory, line);
 
-      const exists = memory.priorities.some(
-  item => item.text === intent
-);
+  const priorityData =
+    calculatePriority(memory, line);
 
-if (exists) {
-  continue;
-}
+  if (priorityData.score >= 5) {
+
+    memory.priorities ??= [];
+
+    if (
+      !memory.priorities.some(
+        p => p.text === line
+      )
+    ) {
+
       memory.priorities.push({
-        text: intent,
+        text: line,
         score: priorityData.score,
         category: priorityData.category,
         timestamp: new Date()
           .toISOString()
-          .slice(0, 10)
+          .slice(0,10)
       });
 
     }
@@ -170,13 +167,10 @@ if (exists) {
   }
 
 }
-
 if (memory.priorities.length > 50) {
   memory.priorities =
     memory.priorities.slice(-50);
 }
-
-classifyIntent(userText);
 
       const directResponse =
   getDirectResponse(
@@ -231,7 +225,16 @@ if (!reply && directResponse) {
   }
 
       }
-      
+    const entities =
+  extractEntities(normalizedText);
+
+const directResponse =
+  getDirectResponse(
+      memory,
+      normalizedText,
+      intent,
+      entities
+  );  
 // Gemini
 if (!reply) {
   const relevantMemory =

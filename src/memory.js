@@ -313,67 +313,46 @@ export function rememberName(memory, text) {
   }
 }
 
-export function rememberFamily(memory, text) {
-  if (shouldSkipText(text, 200)) return;
- if (isQuestion(text)) {
-  return;
-}
-  const t = text.trim();
+export function rememberEntity(memory, entity) {
 
-  const patterns = [
-  {
-    key: "daughter",
-    regex: /^اسم دخترم\s+(.+?)\s*(است|هست)?$/i
-  },
-  {
-    key: "son",
-    regex: /^اسم پسرم\s+(.+?)\s*(است|هست)?$/i
-  },
-  {
-    key: "wife",
-    regex: /^اسم همسرم\s+(.+?)\s*(است|هست)?$/i
-  },
-  {
-    key: "wife",
-    regex: /^اسم زنم\s+(.+?)\s*(است|هست)?$/i
-  },
-  {
-    key: "husband",
-    regex: /^اسم شوهرم\s+(.+?)\s*(است|هست)?$/i
+  if (!entity) return;
+
+  switch (entity.type) {
+
+    case "name":
+      memory.profile.name = entity.value;
+      break;
+
+    case "wife":
+      memory.profile.family.wife = entity.value;
+      break;
+
+    case "husband":
+      memory.profile.family.husband = entity.value;
+      break;
+
+    case "daughter":
+      memory.profile.family.daughter = entity.value;
+      break;
+
+    case "son":
+      memory.profile.family.son = entity.value;
+      break;
+
+    case "goal":
+      if (!alreadyExists(memory.profile.goals, entity.value)) {
+        memory.profile.goals.push(entity.value);
+      }
+      break;
+
+    case "preference":
+      if (!alreadyExists(memory.profile.preferences, entity.value)) {
+        memory.profile.preferences.push(entity.value);
+      }
+      break;
+
   }
-];
 
-const badNames = [
-  "چیه",
-  "چیست",
-  "؟",
-  "?",
-  "کیه",
-  "کیست"
-];
-
-for (const item of patterns) {
-  const match = t.match(item.regex);
-
-  if (!match) continue;
-
-  let name = match[1].trim();
-if (badNames.includes(name)) {
-  return;
-}
-if (isQuestion(name)) {
-  return;
-}
-
-name = name.replace(/(است|هست)$/i, "").trim();
-
-if (!name) {
-  return;
-}
-
-  memory.profile.family[item.key] = name;
-  return;
-}
 }
 export function rememberPreference(memory, text) {
   if (shouldSkipText(text, 500)) return;
@@ -493,15 +472,13 @@ export function rememberRelationship(memory, text) {
 }
 
 export function rememberSemantic(memory, text) {
+export function rememberSemantic(memory, text) {
   if (shouldSkipText(text, 1500)) return;
-  if (isQuestion(text)) {
-  return;
-}
+  if (isQuestion(text)) return;
+
   const t = text.trim();
 
-if (alreadyExists(memory.longTermMemory, t)) {
-  return;
-}
+  if (!t) return;
 
   let category = "general";
   let importance = 3;
@@ -509,19 +486,30 @@ if (alreadyExists(memory.longTermMemory, t)) {
   if (
     t.includes("دخترم") ||
     t.includes("پسرم") ||
-    t.includes("همسرم")
+    t.includes("همسرم") ||
+    t.includes("زنم") ||
+    t.includes("شوهرم")
   ) {
     category = "family";
     importance = 8;
   }
 
   if (
-    t.includes("کار") ||
     t.includes("شیفت") ||
-    t.includes("بیمارستان")
+    t.includes("بیمارستان") ||
+    t.includes("امروز") ||
+    t.includes("فردا")
   ) {
     category = "schedule";
     importance = 6;
+  }
+
+  if (
+    t.includes("هدف") ||
+    t.includes("پروژه")
+  ) {
+    category = "goal";
+    importance = 7;
   }
 
   if (
@@ -534,8 +522,11 @@ if (alreadyExists(memory.longTermMemory, t)) {
   if (importance < 5) return;
 
   if (alreadyExists(memory.semanticMemory, t)) {
-  return;
+    return;
   }
+
+  memory.semanticMemory ??= [];
+
   memory.semanticMemory.push({
     text: t,
     category,

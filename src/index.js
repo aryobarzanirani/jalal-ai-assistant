@@ -168,13 +168,28 @@ for (const line of lines) {
 
 }
       memory.priorities ??= [];
+if (mememory.priorities ??= [];
+
 if (memory.priorities.length > 50) {
   memory.priorities =
-    memory.priorities.slice(-50);
+      memory.priorities.slice(-50);
 }
 
-let reply = null;
+const entities =
+    extractEntities(normalizedText);
 
+const finalIntent =
+    detectIntent(normalizedText);
+
+const directResponse =
+    getDirectResponse(
+        memory,
+        normalizedText,
+        finalIntent,
+        entities
+    );
+
+let reply = null;
 // Task Completion
 if (
   normalizedText.includes("انجام شد") ||
@@ -219,18 +234,7 @@ if (!reply && directResponse) {
   }
 
       }
-    const entities =
-  extractEntities(normalizedText);
 
-      const finalIntent =
-    detectIntent(normalizedText);
-const directResponse =
-  getDirectResponse(
-      memory,
-      normalizedText,
-      intent,
-      entities
-  );  
 // Gemini
 if (!reply) {
   const relevantMemory =

@@ -109,33 +109,9 @@ for (const line of lines) {
   const currentIntent = detectIntent(line);
 
   const entities = extractEntities(line);
-
-  switch (currentIntent) {
-
-    case "user_name":
-      rememberName(memory, line);
-      break;
-
-    case "family":
-      rememberFamily(memory, line);
-      break;
-
-    case "preferences":
-      rememberPreference(memory, line);
-      break;
-
-    case "goal":
-      rememberGoal(memory, line);
-      break;
-
-    case "relationship":
-      rememberRelationship(memory, line);
-      break;
-
-    default:
-      rememberSemantic(memory, line);
-      break;
-  }
+for (const entity of entities) {
+  rememberEntity(memory, entity);
+}
 
   rememberSynonym(memory, line);
 

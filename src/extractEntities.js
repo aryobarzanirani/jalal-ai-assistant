@@ -1,49 +1,12 @@
 // src/extractEntities.js
 
 export function extractEntities(text) {
+
   const t = (text || "").trim();
 
-  const entities = {
-    relation: null,
-    personName: null,
-    goal: null,
-    project: null,
-    task: null,
-    city: null,
-    schedule: null,
-    organization: null,
-    date: null,
-    time: null
-  };
+  const entities = [];
 
-  // ---------------- Family ----------------
-
-  if (
-    t.includes("دختر")
-  ) {
-    entities.relation = "daughter";
-  }
-
-  else if (
-    t.includes("پسر")
-  ) {
-    entities.relation = "son";
-  }
-
-  else if (
-    t.includes("همسر") ||
-    t.includes("زن")
-  ) {
-    entities.relation = "wife";
-  }
-
-  else if (
-    t.includes("شوهر")
-  ) {
-    entities.relation = "husband";
-  }
-
-  // ---------------- Person Name ----------------
+  // ---------------- Name ----------------
 
   let match =
     t.match(/^اسم من\s+(.+?)\s*(است|هست)?$/);
@@ -54,7 +17,58 @@ export function extractEntities(text) {
   }
 
   if (match) {
-    entities.personName = match[1].trim();
+    entities.push({
+      type: "name",
+      value: match[1].trim()
+    });
+  }
+
+  // ---------------- Wife ----------------
+
+  match =
+    t.match(/(?:اسم\s+)?(?:همسر|زن)م\s+(.+)/);
+
+  if (match) {
+    entities.push({
+      type: "wife",
+      value: match[1].trim()
+    });
+  }
+
+  // ---------------- Husband ----------------
+
+  match =
+    t.match(/(?:اسم\s+)?شوهرم\s+(.+)/);
+
+  if (match) {
+    entities.push({
+      type: "husband",
+      value: match[1].trim()
+    });
+  }
+
+  // ---------------- Daughter ----------------
+
+  match =
+    t.match(/(?:اسم\s+)?دخترم\s+(.+)/);
+
+  if (match) {
+    entities.push({
+      type: "daughter",
+      value: match[1].trim()
+    });
+  }
+
+  // ---------------- Son ----------------
+
+  match =
+    t.match(/(?:اسم\s+)?پسرم\s+(.+)/);
+
+  if (match) {
+    entities.push({
+      type: "son",
+      value: match[1].trim()
+    });
   }
 
   // ---------------- Goal ----------------
@@ -64,17 +78,42 @@ export function extractEntities(text) {
     t.includes("میخوام") ||
     t.includes("می‌خوام")
   ) {
-    entities.goal = t;
+
+    entities.push({
+      type: "goal",
+      value: t
+    });
+
+  }
+
+  // ---------------- Preference ----------------
+
+  if (
+    t.includes("دوست دارم") ||
+    t.includes("علاقه دارم") ||
+    t.includes("عاشق")
+  ) {
+
+    entities.push({
+      type: "preference",
+      value: t
+    });
+
   }
 
   // ---------------- Project ----------------
 
   if (
     t.includes("پروژه") ||
-    t.includes("در حال ساخت") ||
-    t.includes("در حال توسعه")
+    t.includes("در حال توسعه") ||
+    t.includes("در حال ساخت")
   ) {
-    entities.project = t;
+
+    entities.push({
+      type: "goal",
+      value: t
+    });
+
   }
 
   // ---------------- Task ----------------
@@ -83,7 +122,12 @@ export function extractEntities(text) {
     t.includes("باید") ||
     t.includes("لازمه")
   ) {
-    entities.task = t;
+
+    entities.push({
+      type: "task",
+      value: t
+    });
+
   }
 
   // ---------------- Schedule ----------------
@@ -92,51 +136,23 @@ export function extractEntities(text) {
     t.includes("شیفت") ||
     t.includes("بیمارستان")
   ) {
-    entities.schedule = t;
+
+    entities.push({
+      type: "schedule",
+      value: t
+    });
+
   }
 
-  // ---------------- Date ----------------
-
-  const dateWords = [
-    "امروز",
-    "فردا",
-    "پس‌فردا",
-    "دیشب",
-    "دیروز"
-  ];
-
-  for (const word of dateWords) {
-    if (t.includes(word)) {
-      entities.date = word;
-      break;
-    }
-  }
-
-  // ---------------- Time ----------------
-
-  const timeWords = [
-    "صبح",
-    "ظهر",
-    "عصر",
-    "شب"
-  ];
-
-  for (const word of timeWords) {
-    if (t.includes(word)) {
-      entities.time = word;
-      break;
-    }
-  }
-
-  // ---------------- Cities ----------------
+  // ---------------- City ----------------
 
   const cities = [
     "تهران",
-    "یزد",
     "مشهد",
-    "تبریز",
     "اصفهان",
     "شیراز",
+    "تبریز",
+    "یزد",
     "قم",
     "کرج",
     "رشت",
@@ -144,19 +160,66 @@ export function extractEntities(text) {
   ];
 
   for (const city of cities) {
+
     if (t.includes(city)) {
-      entities.city = city;
+
+      entities.push({
+        type: "city",
+        value: city
+      });
+
       break;
     }
+
   }
 
-  // ---------------- Organization ----------------
+  // ---------------- Date ----------------
 
-  if (
-    t.includes("بیمارستان")
-  ) {
-    entities.organization = "بیمارستان";
+  const dates = [
+    "امروز",
+    "فردا",
+    "پس‌فردا",
+    "دیروز",
+    "دیشب"
+  ];
+
+  for (const date of dates) {
+
+    if (t.includes(date)) {
+
+      entities.push({
+        type: "date",
+        value: date
+      });
+
+      break;
+    }
+
+  }
+
+  // ---------------- Time ----------------
+
+  const times = [
+    "صبح",
+    "ظهر",
+    "عصر",
+    "شب"
+  ];
+
+  for (const time of times) {
+
+    if (t.includes(time)) {
+
+      entities.push({
+        type: "time",
+        value: time
+      });
+
+      break;
+    }
+
   }
 
   return entities;
-}
+
+      }

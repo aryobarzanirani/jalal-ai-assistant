@@ -100,9 +100,7 @@ const lines = splitSentences(normalizedText);
 for (const line of lines) {
 
   const entities = extractEntities(line);
-for (const entity of entities) {
   rememberEntity(memory, entity);
-}
 
   rememberSynonym(memory, line);
 

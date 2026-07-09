@@ -105,7 +105,7 @@ for (const line of lines) {
 
   const currentIntent = detectIntent(line);
 
-  const entities = extractEntities(line);
+  const entities = extractEntities(memory, line);
 
   switch (currentIntent) {
 
@@ -167,17 +167,11 @@ for (const line of lines) {
   }
 
 }
+      memory.priorities ??= [];
 if (memory.priorities.length > 50) {
   memory.priorities =
     memory.priorities.slice(-50);
 }
-
-      const directResponse =
-  getDirectResponse(
-    memory,
-    normalizedText,
-    intent
-  );
 
 let reply = null;
 
@@ -228,6 +222,8 @@ if (!reply && directResponse) {
     const entities =
   extractEntities(normalizedText);
 
+      const finalIntent =
+    detectIntent(normalizedText);
 const directResponse =
   getDirectResponse(
       memory,

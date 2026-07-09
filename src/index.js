@@ -5,19 +5,12 @@ import { getDirectResponse } from "./router.js";
 import { getFallbackResponse } from "./fallback.js";
 
 import { askGemini } from "./gemini.js";
-
 import {
   getMemory,
   saveMemory,
-  rememberName,
-  rememberGoal,
-  rememberFamily,
-  rememberPreference,
-  rememberRelationship,
-  rememberSemantic,
+  rememberEntity,
   isMemoryDump
 } from "./memory.js";
-
 import { forgettingPolicy } from "./forgetting.js";
 import { promoteMemory } from "./memory-promotion.js";
 import { consolidateMemory } from "./memory-consolidator.js";
@@ -106,8 +99,6 @@ const lines = splitSentences(normalizedText);
 
 for (const line of lines) {
 
-  const currentIntent = detectIntent(line);
-
   const entities = extractEntities(line);
 for (const entity of entities) {
   rememberEntity(memory, entity);
@@ -152,7 +143,8 @@ if (memory.priorities.length > 50) {
 
 const finalIntent =
     detectIntent(normalizedText);
-
+const entities =
+    extractEntities(normalizedText);
 const directResponse =
     getDirectResponse(
         memory,

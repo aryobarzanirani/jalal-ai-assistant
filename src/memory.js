@@ -1,3 +1,5 @@
+
+import { alreadyExists } from "./utils.js";
 export function isQuestion(text) {
   if (!text) return false;
 
@@ -313,10 +315,8 @@ export function rememberName(memory, text) {
   }
 }
 
-export function rememberEntity(memory, entity) {
 // memory.js
 
-import { alreadyExists } from "./utils.js";
 
 export function rememberEntity(memory, entities) {
 

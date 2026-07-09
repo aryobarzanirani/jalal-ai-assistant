@@ -168,15 +168,10 @@ for (const line of lines) {
 
 }
       memory.priorities ??= [];
-if (mememory.priorities ??= [];
 
 if (memory.priorities.length > 50) {
-  memory.priorities =
-      memory.priorities.slice(-50);
+  memory.priorities = memory.priorities.slice(-50);
 }
-
-const entities =
-    extractEntities(normalizedText);
 
 const finalIntent =
     detectIntent(normalizedText);

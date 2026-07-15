@@ -283,3 +283,5 @@ await sendTelegram(env, chatId, reply);
     }
   }
 };
+// BUILD TEST 12345
+import { classifyIntent } from "./intent.js";

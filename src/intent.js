@@ -46,3 +46,7 @@ export function classifyIntent(userText) {
   // Layer 3 → AI
   return "gemini";
 }
+
+export function detectIntent(userText) {
+  return classifyIntent(userText);
+}

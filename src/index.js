@@ -1,4 +1,4 @@
-import { detectIntent } from "./intent.js";
+import { classifyIntent } from "./intent.js";
 import { extractEntities } from "./extractEntities.js";
 
 import { getDirectResponse } from "./router.js";
@@ -100,7 +100,7 @@ const lines = splitSentences(normalizedText);
 for (const line of lines) {
 
   const entities = extractEntities(line);
-  rememberEntity(memory, entity);
+rememberEntity(memory, entities);
 
   rememberSynonym(memory, line);
 
@@ -140,7 +140,7 @@ if (memory.priorities.length > 50) {
 }
 
 const finalIntent =
-    detectIntent(normalizedText);
+    classifyIntent(normalizedText);
 const entities =
     extractEntities(normalizedText);
 const directResponse =

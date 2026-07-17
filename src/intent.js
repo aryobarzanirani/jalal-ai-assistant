@@ -41,6 +41,8 @@ export function classifyIntent(userText) {
     if (text.includes(pattern)) {
       return "reasoning";
     }
+
+    ljhgbhh
   }
 
   // Layer 3 → AI

@@ -41,14 +41,8 @@ export function classifyIntent(userText) {
     if (text.includes(pattern)) {
       return "reasoning";
     }
-
-    ljhgbhh
   }
 
   // Layer 3 → AI
   return "gemini";
-}
-
-export function detectIntent(userText) {
-  return classifyIntent(userText);
 }
